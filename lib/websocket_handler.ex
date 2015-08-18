@@ -1,4 +1,7 @@
+require Logger
+
 defmodule Pixie.WebsocketHandler do
+  alias Pixie.Bayeux
   @behaviour :cowboy_websocket_handler
 
   def init _transport, req, opts do
@@ -17,9 +20,14 @@ defmodule Pixie.WebsocketHandler do
     {:ok, req, state}
   end
 
+  def websocket_handle {:text, data}, req, state do
+    Logger.debug "websocket_handle :text, #{inspect(data)}"
+    data = Poison.decode! data
+    Bayeux.process req, data
+  end
+
   def websocket_handle frame, req, state do
-    IO.inspect frame
-    {:ok, req, state}
+    :cowboy_websocket.handle frame, req, state
   end
 
   def websocket_info msg, req, state do

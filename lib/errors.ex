@@ -1,3 +1,5 @@
+require Logger
+
 defmodule Pixie.Errors do
 
   def not_found req do
@@ -21,7 +23,9 @@ defmodule Pixie.Errors do
   end
 
   defp send_error req, status, message, headers do
-    {:ok, :cowboy_req.reply(status, headers, message, req), nil}
+    Logger.info "Sending #{status}: #{inspect message}"
+    {:ok, req} = :cowboy_req.reply(status, headers, message, req)
+    {:ok, req, nil}
   end
 
   defp default_headers do
