@@ -12,17 +12,16 @@ defmodule Pixie.Mixfile do
 
   def application do
     [
-      applications: [:logger, :cowboy, :plug],
+      applications: [:logger, :cowboy],
       mod: {Pixie, []}
     ]
   end
 
   defp deps do
     [
-      {:cowboy, "~> 1.0.0"},
-      {:plug,   "~> 0.13"},
-      {:erlfaye, github: "antoniogarrote/erlfaye", only: :fake_env},
-      {:poison, "~> 1.4.0"}
+      {:cowboy,        "~> 1.0.0"},
+      {:poison,        "~> 1.4.0"},
+      {:secure_random, "~> 0.1"}
     ]
   end
 end

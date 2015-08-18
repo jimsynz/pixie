@@ -3,12 +3,7 @@ defmodule Pixie do
 
   def start(_,_), do: start
   def start do
-    :erlfaye_cluster.start
-  end
-
-  def stop(_), do: stop
-  def stop do
-    :erlfaye_cluster.stop
+    Pixie.Supervisor.start_link
   end
 
   def version do

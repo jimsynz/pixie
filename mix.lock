@@ -3,4 +3,5 @@
   "erlfaye": {:git, "git://github.com/antoniogarrote/erlfaye.git", "366227ac6c671e557cedb047c620e69ed3f94b3b", []},
   "plug": {:hex, :plug, "0.13.0"},
   "poison": {:hex, :poison, "1.4.0"},
-  "ranch": {:hex, :ranch, "1.1.0"}}
+  "ranch": {:hex, :ranch, "1.1.0"},
+  "secure_random": {:hex, :secure_random, "0.1.1"}}
