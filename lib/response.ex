@@ -3,6 +3,10 @@ defmodule Pixie.Response do
     Pixie.Response.Handshake.init message
   end
 
+  def init %Pixie.Message.Connect{}=message do
+    Pixie.Response.Connect.init message
+  end
+
   def successful?(%{error: error}) when error == nil do
     true
   end

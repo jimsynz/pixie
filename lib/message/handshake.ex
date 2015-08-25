@@ -23,7 +23,7 @@ defmodule Pixie.Message.Handshake do
       |> get(message, :id)
   end
 
-  defp get handshake, message, :supported_connection_types=field do
+  def get handshake, message, :supported_connection_types=field do
     case Map.get message, field do
       ct when is_list(ct) ->
         Map.put handshake, field, Enum.into(ct, HashSet.new)
@@ -32,10 +32,5 @@ defmodule Pixie.Message.Handshake do
     end
   end
 
-  defp get handshake, message, field do
-    case Map.get message, field do
-      nil -> handshake
-      v   -> Map.put handshake, field, v
-    end
-  end
+  def get(h,m,f), do: Pixie.Message.Utils.get(h,m,f)
 end

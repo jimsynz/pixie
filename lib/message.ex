@@ -12,4 +12,8 @@ defmodule Pixie.Message do
     Pixie.Message.Handshake.init message
   end
 
+  defp do_init %{channel: "/meta/connect"}=message do
+    Pixie.Message.Connect.init message
+  end
+
 end

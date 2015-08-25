@@ -11,6 +11,10 @@ defmodule PixieMessageHandshakeSpec do
     }
   end
 
+  it "returns a Pixie.Message.Handshake struct" do
+    expect(message.__struct__).to eq(Pixie.Message.Handshake)
+  end
+
   it "has correct channel" do
     expect(message.channel).to eq "/meta/handshake"
   end

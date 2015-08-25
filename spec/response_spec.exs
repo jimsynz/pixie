@@ -11,6 +11,14 @@ defmodule PixieResponseSpec do
         expect(response.__struct__).to eq(Pixie.Response.Handshake)
       end
     end
+
+    context "When passed a connect message" do
+      let :message, do: Pixie.Message.Connect.init %{}
+
+      it "returns a Connect response" do
+        expect(response.__struct__).to eq(Pixie.Response.Connect)
+      end
+    end
   end
 
   describe "successful?" do

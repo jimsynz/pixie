@@ -20,17 +20,10 @@ defmodule Pixie.Response.Handshake do
   # Note that we don't have a `successful` field here. We'll calculate it
   # when we encode to JSON.
   defstruct channel: "/meta/handshake", version: @version, supported_connection_types: HashSet.new, client_id: nil, error: nil, minimum_version: nil, advice: nil, ext: nil, id: nil, auth_successful: nil
+  import Pixie.Response.Utils
 
   def init %Pixie.Message.Handshake{}=message do
     %Pixie.Response.Handshake{}
       |> put(message, :id)
-      |> put(message, :client_id)
-  end
-
-  defp put handshake, message, field do
-    case Map.get message, field do
-      nil -> handshake
-      v   -> Map.put handshake, field, v
-    end
   end
 end
