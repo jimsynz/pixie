@@ -52,6 +52,8 @@ defmodule Pixie.Engines.Memory do
       Set.union acc, channel_clients
     end
 
+    # We don't need to jump through Faye's hoop of having a message queue,
+    # becuase each process has an implicit mailbox.
     Enum.each deliver_to_clients, fn(client_id)->
       Server.deliver server, client_id, message
     end

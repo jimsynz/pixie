@@ -10,7 +10,11 @@ defmodule Pixie.Namespace do
   end
 
   def generate do
-    GenServer.call __MODULE__, :generate
+    generate 32
+  end
+
+  def generate length do
+    GenServer.call __MODULE__, { :generate, length }
   end
 
   def release id do
@@ -21,8 +25,8 @@ defmodule Pixie.Namespace do
     GenServer.call __MODULE__, {:exists?, id}
   end
 
-  def handle_call :generate, _from, used do
-    {id, used} = generate_id used
+  def handle_call {:generate, length}, _from, used do
+    {id, used} = generate_id used, length
     {:reply, id, used}
   end
 
@@ -39,10 +43,10 @@ defmodule Pixie.Namespace do
     HashSet.new
   end
 
-  defp generate_id used do
-    id = Id.generate
+  defp generate_id used, length do
+    id = Id.generate length
     if Set.member? used, id do
-      generate_id used
+      generate_id used, length
     else
       used = Set.put used, id
       {id, used}
