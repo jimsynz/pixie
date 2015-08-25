@@ -29,6 +29,10 @@ defmodule Pixie.Bayeux.Error do
     error r, :parameter_missing, parameters
   end
 
+  def client_unknown(r, client_id) do
+    error r, :client_unknown, [client_id]
+  end
+
   defp error r, name, args do
     {code, message} = Map.fetch! @errors, name
     Map.put r, :error, "#{code}:#{Enum.join(args, ",")}:#{message}"

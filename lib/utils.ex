@@ -57,4 +57,20 @@ defmodule Pixie.Utils do
         Map.put acc, key, value
     end
   end
+
+  def missing_key? acc, message, key do
+    case Map.get message, key do
+      nil ->
+        [key | acc]
+      value when is_bitstring(value) and byte_size(value) == 0 ->
+        [key | acc]
+      value when is_list(value) and length(value) == 0 ->
+        [key | acc]
+      value when is_map(value) and map_size(value) == 0 ->
+        [key | acc]
+      _ ->
+        acc
+    end
+  end
+
 end

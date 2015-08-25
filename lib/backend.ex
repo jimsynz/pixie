@@ -21,4 +21,11 @@ defmodule Pixie.Backend do
     GenServer.call __MODULE__, :create_client
   end
 
+  def get_client client_id do
+    GenServer.call __MODULE__, {:get_client, client_id}
+  end
+
+  def destroy_client client do
+    GenServer.cast __MODULE__, {:destroy_client, client}
+  end
 end

@@ -30,6 +30,21 @@ defmodule Pixie.Backend.Memory do
     {:reply, client, %{state | namespaces: used, clients: clients}}
   end
 
+  def handle_call {:get_client, client_id}, _from, %{clients: clients}=state do
+    {:reply, Map.get(clients, client_id), state}
+  end
+
+  def handle_cast {:destroy_client, %Pixie.Client{}=client}, %{clients: clients}=state do
+    {:noreply, %{state | clients: destroy_client(clients, client)}}
+  end
+
+  def handle_cast {:destroy_client, client_id}, %{clients: clients}=state do
+    case Map.get clients, client_id do
+      nil ->    {:noreply, state}
+      client -> {:noreply, %{state | clients: destroy_client(clients, client)}}
+    end
+  end
+
   def handle_cast {:release_namespace, namespace}, %{namespaces: used}=state do
     used = Set.delete used, namespace
     {:noreply, %{state | namespaces: used}}
@@ -52,5 +67,10 @@ defmodule Pixie.Backend.Memory do
       used = Set.put used, id
       {id, used}
     end
+  end
+
+  defp destroy_client clients, client do
+    # TODO unsubscribe channels
+    Map.delete clients, client.id
   end
 end

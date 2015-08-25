@@ -5,6 +5,7 @@ defmodule Pixie.Handshake do
   alias Pixie.Bayeux.Error
   alias Pixie.Bayeux
   alias Pixie.Client
+  import Pixie.Utils
 
   def handle(%Event{message: %{version: v}, response: r}=event) when not is_nil(v) and v != @version do
     %{event | response: Error.version_mismatch(r, v) }
@@ -30,20 +31,4 @@ defmodule Pixie.Handshake do
 
     %{event | response: Error.parameter_missing(r, missing)}
   end
-
-  defp missing_key? acc, message, key do
-    case Map.get message, key, nil do
-      nil ->
-        [key | acc]
-      value when is_bitstring(value) and byte_size(value) == 0 ->
-        [key | acc]
-      value when is_list(value) and length(value) == 0 ->
-        [key | acc]
-      value when is_map(value) and map_size(value) == 0 ->
-        [key | acc]
-      _ ->
-        acc
-    end
-  end
-
 end
