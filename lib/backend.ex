@@ -1,12 +1,7 @@
 defmodule Pixie.Backend do
-  import Pixie.Utils
-
-  # Default to using the Memory backend if none is specified.
-  def start_link, do: start_link :Memory
-
-  def start_link name do
-    module = Module.concat [:Pixie, :Backend, camelize(name, true)]
-    apply(module, :start_link, [[name: Pixie.Backend]])
+  def start_link name, options do
+    module = Module.concat [:Pixie, :Backend, name]
+    apply(module, :start_link, [Pixie.Backend, options])
   end
 
   def stop do

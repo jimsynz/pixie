@@ -1,8 +1,8 @@
 defmodule Pixie.Backend.Memory do
   use GenServer
 
-  def start_link opts do
-    GenServer.start_link __MODULE__, nil, opts
+  def start_link name, opts do
+    GenServer.start_link __MODULE__, opts, name: name
   end
 
   def init(_), do: init

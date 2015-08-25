@@ -6,9 +6,13 @@ defmodule Pixie.Supervisor do
   end
 
   def init([]) do
+    backend_options = Application.get_env(:pixie, :backend, [name: :Memory])
+    backend_name    = Dict.get backend_options, :name
+    backend_options = Dict.delete backend_options, :name
+
     children = [
-      worker(Pixie.Namespace, []),
-      worker(Pixie.Timeouts, [])
+      worker(Pixie.Timeouts, []),
+      worker(Pixie.Backend, [backend_name, backend_options])
     ]
 
     supervise(children, strategy: :one_for_one)
