@@ -4,13 +4,14 @@ defmodule PixieBackendsMemorySpec do
 
   describe "init" do
     it "returns the initial state" do
-      {:ok, %{namespaces: ns}} = Memory.init
+      {:ok, %{namespaces: ns, options: opts}} = Memory.init :foo
       expect(ns.__struct__).to eq(HashSet)
+      expect(opts).to eq(:foo)
     end
   end
 
   describe "GenServer calls" do
-    let :state, do: %{namespaces: HashSet.new}
+    let :state, do: %{namespaces: HashSet.new, clients: HashSet.new}
 
     describe :generate_namespace do
       it "returns the correct length namespace" do
@@ -33,6 +34,13 @@ defmodule PixieBackendsMemorySpec do
         expect(used).to have(ns)
         {:noreply, %{namespaces: used}} = Memory.handle_cast {:release_namespace, ns}, state
         expect(used).not_to have(ns)
+      end
+    end
+
+    describe :create_client do
+      it "generates a new client" do
+        {:reply, client, _state} = Memory.handle_call :create_client, self, state
+        expect(client.__struct__).to eq(Pixie.Client)
       end
     end
   end

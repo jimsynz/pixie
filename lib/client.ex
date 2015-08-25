@@ -8,7 +8,7 @@ defmodule Pixie.Client do
 
   alias Pixie.Client
 
-  def init do
-    %Client{id: Pixie.Namespace.generate}
+  def init id do
+    %Client{id: id}
   end
 end

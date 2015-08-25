@@ -17,7 +17,7 @@ defmodule Pixie.Handshake do
     if Enum.empty? common_transports do
       %{event | response: Error.conntype_mismatch(response, client_transports)}
     else
-      client = Client.init
+      client = Pixie.Backend.create_client
       %{event | client: client, response: %{response | client_id: client.id}}
     end
   end

@@ -36,7 +36,7 @@ defmodule PixieHandshakeSpec do
       let :message, do: %{}
 
       it "sets a parameter missing response" do
-        expect(response.error).to start_with("402:SupportedConnectionTypes,Version,Channel:")
+        expect(response.error).to start_with("402:channel,supportedConnectionTypes,version:")
       end
 
       it "does not create a new client" do

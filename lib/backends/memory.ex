@@ -5,10 +5,11 @@ defmodule Pixie.Backend.Memory do
     GenServer.start_link __MODULE__, opts, name: name
   end
 
-  def init(_), do: init
-  def init do
+  def init(opts) do
     {:ok, %{
-        namespaces: HashSet.new
+        options:    opts,
+        namespaces: HashSet.new,
+        clients:    %{}
       }}
   end
 
@@ -20,6 +21,13 @@ defmodule Pixie.Backend.Memory do
   def handle_call :stop, from, state do
     GenServer.reply(from, :ok)
     {:stop, :normal, state}
+  end
+
+  def handle_call :create_client, _from, %{namespaces: used, clients: clients}=state do
+    {id, used} = generate_id used, 32
+    client     = Pixie.Client.init(id)
+    clients    = Map.put clients, id, client
+    {:reply, client, %{state | namespaces: used, clients: clients}}
   end
 
   def handle_cast {:release_namespace, namespace}, %{namespaces: used}=state do

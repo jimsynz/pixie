@@ -17,4 +17,8 @@ defmodule Pixie.Backend do
     GenServer.cast __MODULE__, {:release_namespace, namespace}
   end
 
+  def create_client do
+    GenServer.call __MODULE__, :create_client
+  end
+
 end
