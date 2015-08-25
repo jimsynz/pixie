@@ -1,5 +1,5 @@
-defmodule Pixie.Bayeux.Error do
-  alias Pixie.Utils
+defmodule Pixie.Protocol.Error do
+  alias Pixie.Utils.String, as: StringUtils
 
   @errors %{
     version_mismatch:  {300, "Version mismatch"},
@@ -25,7 +25,7 @@ defmodule Pixie.Bayeux.Error do
 
   def parameter_missing(r,p) when is_atom(p), do: parameter_missing(r, [p])
   def parameter_missing(r, parameters) when is_list(parameters) do
-    parameters = Enum.map(parameters, &Utils.camelize/1) |> Enum.sort
+    parameters = Enum.map(parameters, &StringUtils.camelize/1) |> Enum.sort
     error r, :parameter_missing, parameters
   end
 

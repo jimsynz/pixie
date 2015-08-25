@@ -1,10 +1,10 @@
 defmodule Pixie.Message do
-  alias Pixie.Utils
+  alias Pixie.Utils.Map, as: MapUtils
 
   def init message do
     message
-      |> Utils.atomize_keys
-      |> Utils.underscore_keys
+      |> MapUtils.atomize_keys
+      |> MapUtils.underscore_keys
       |> do_init
   end
 

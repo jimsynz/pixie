@@ -1,4 +1,4 @@
-defmodule Pixie.UniqueId do
+defmodule Pixie.Utils.RandomId do
   @id_length 32
 
   @alphabet ~w|

@@ -1,4 +1,4 @@
-defmodule Pixie.Message.Utils do
+defmodule Pixie.Utils.Message do
   def get handshake, message, field do
     case Map.get message, field do
       nil -> handshake

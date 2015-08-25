@@ -60,7 +60,7 @@ defmodule Pixie.Backend.Memory do
   end
 
   defp generate_id used, length do
-    id = Pixie.UniqueId.generate length
+    id = Pixie.Utils.RandomId.generate length
     if Set.member? used, id do
       generate_id used, length
     else

@@ -15,7 +15,7 @@
 
 defmodule Pixie.Message.Connect do
   defstruct channel: nil, client_id: nil, connection_type: nil, ext: nil, id: nil
-  import Pixie.Message.Utils
+  import Pixie.Utils.Message
 
   def init %{}=message do
     %Pixie.Message.Connect{}

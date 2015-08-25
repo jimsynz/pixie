@@ -1,6 +1,6 @@
 require Logger
 
-defmodule Pixie.WebsocketHandler do
+defmodule Pixie.Adapter.CowboyWebsocket do
   alias Pixie.Bayeux
   @behaviour :cowboy_websocket_handler
 
@@ -12,7 +12,7 @@ defmodule Pixie.WebsocketHandler do
     {:upgrade, :protocol, :cowboy_websocket, req, opts}
   end
 
-  def upgrade req, env, handler, handler_opts do
+  def upgrade req, env, _handler, handler_opts do
     :cowboy_websocket.upgrade req, env, __MODULE__, handler_opts
   end
 
@@ -20,7 +20,7 @@ defmodule Pixie.WebsocketHandler do
     {:ok, req, state}
   end
 
-  def websocket_handle {:text, data}, req, state do
+  def websocket_handle {:text, data}, req, _state do
     Logger.debug "websocket_handle :text, #{inspect(data)}"
     data = Poison.decode! data
     Bayeux.process req, data

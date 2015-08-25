@@ -10,12 +10,12 @@
 
 defmodule Pixie.Connect do
   alias Pixie.Event
-  alias Pixie.Bayeux.Error
+  alias Pixie.Protocol.Error
   alias Pixie.Backend
-  import Pixie.Utils
+  import Pixie.Utils.Map
 
-  def handle(%Event{message: %{client_id: c_id}=m, client: c, response: r}=event) when is_nil(c) and not is_nil(c_id) do
-    case Pixie.Backend.get_client(c_id) do
+  def handle(%Event{message: %{client_id: c_id}, client: c, response: r}=event) when is_nil(c) and not is_nil(c_id) do
+    case Backend.get_client(c_id) do
       nil ->
         %{event | response: Error.client_unknown(r, c_id)}
       %Pixie.Client{}=client->

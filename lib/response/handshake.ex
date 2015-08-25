@@ -20,7 +20,7 @@ defmodule Pixie.Response.Handshake do
   # Note that we don't have a `successful` field here. We'll calculate it
   # when we encode to JSON.
   defstruct channel: "/meta/handshake", version: @version, supported_connection_types: HashSet.new, client_id: nil, error: nil, minimum_version: nil, advice: nil, ext: nil, id: nil, auth_successful: nil
-  import Pixie.Response.Utils
+  import Pixie.Utils.Response
 
   def init %Pixie.Message.Handshake{}=message do
     %Pixie.Response.Handshake{}

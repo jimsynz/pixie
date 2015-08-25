@@ -2,10 +2,10 @@ defmodule Pixie.Handshake do
   # Is there a way to use the one from Pixie.Bayeux?
   @version "1.0"
   alias Pixie.Event
-  alias Pixie.Bayeux.Error
+  alias Pixie.Protocol.Error
   alias Pixie.Bayeux
-  alias Pixie.Client
-  import Pixie.Utils
+  alias Pixie.Backend
+  import Pixie.Utils.Map
 
   def handle(%Event{message: %{version: v}, response: r}=event) when not is_nil(v) and v != @version do
     %{event | response: Error.version_mismatch(r, v) }
@@ -18,7 +18,7 @@ defmodule Pixie.Handshake do
     if Enum.empty? common_transports do
       %{event | response: Error.conntype_mismatch(response, client_transports)}
     else
-      client = Pixie.Backend.create_client
+      client = Backend.create_client
       %{event | client: client, response: %{response | client_id: client.id}}
     end
   end

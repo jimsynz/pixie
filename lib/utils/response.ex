@@ -1,4 +1,4 @@
-defmodule Pixie.Response.Utils do
+defmodule Pixie.Utils.Response do
   def put handshake, message, field do
     case Map.get message, field do
       nil -> handshake

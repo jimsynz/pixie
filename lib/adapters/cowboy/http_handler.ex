@@ -1,7 +1,7 @@
 require Logger
 
-defmodule Pixie.CowboyHandler do
-  alias Pixie.Errors
+defmodule Pixie.Adapter.CowboyHttp do
+  alias Pixie.Adapter.CowboyError, as: Error
   alias Pixie.Bayeux
 
   @behaviour :cowboy_http_handler
@@ -14,7 +14,7 @@ defmodule Pixie.CowboyHandler do
     verify req, is_upgrade_request?(req)
   end
 
-  def handle req, state do
+  def handle req, _state do
     {method, req} = :cowboy_req.method(req)
     Logger.debug "handing request:  #{inspect req}"
     response = process req, method
@@ -26,8 +26,8 @@ defmodule Pixie.CowboyHandler do
     :ok
   end
 
-  defp verify req, _is_upgrade_request=true do
-    {:upgrade, :protocol, Pixie.WebsocketHandler}
+  defp verify _req, _is_upgrade_request=true do
+    {:upgrade, :protocol, Pixie.Adapter.CowboyWebsocket}
   end
 
   defp verify req, _is_upgrade_request do
@@ -43,13 +43,13 @@ defmodule Pixie.CowboyHandler do
   end
 
   defp process req, _ do
-    Errors.method_not_allowed req
+    Error.method_not_allowed req
   end
 
   defp process_post req, _is_json_request=true do
     {:ok, body, req} = :cowboy_req.body req
     case byte_size(body) do
-      0 -> Errors.not_acceptable req
+      0 -> Error.not_acceptable req
       _ -> Bayeux.process req, Poison.decode!(body)
     end
   end
@@ -63,7 +63,7 @@ defmodule Pixie.CowboyHandler do
     {qs, req} = :cowboy_req.qs(req)
     case byte_size(qs) do
       0 ->
-        Errors.not_found req
+        Error.not_found req
       _ ->
         {queries, req} = :cowboy_req.qs_vals req
         Bayeux.process req, keyword_list_to_map(queries)

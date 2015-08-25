@@ -32,5 +32,5 @@ defmodule Pixie.Message.Handshake do
     end
   end
 
-  def get(h,m,f), do: Pixie.Message.Utils.get(h,m,f)
+  def get(h,m,f), do: Pixie.Utils.Message.get(h,m,f)
 end
