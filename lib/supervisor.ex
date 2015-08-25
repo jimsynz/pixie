@@ -15,6 +15,11 @@ defmodule Pixie.Supervisor do
       worker(Pixie.Backend, [backend_name, backend_options])
     ]
 
+    children = case Application.get_env(:pixie, :start_cowboy, false) do
+      true  -> [worker(Pixie.Server, []) | children]
+      false -> children
+    end
+
     supervise(children, strategy: :one_for_one)
   end
 end
