@@ -11,7 +11,7 @@ defmodule Pixie.Server do
     :cowboy_router.compile([
       {
         :_, [
-          {"/realtime", Pixie.Adapters.CowboyHttp, []},
+          {"/pixie",   Pixie.Adapters.CowboyHttp, []},
           {"/",        :cowboy_static, {:priv_file, :pixie, "index.html"}},
           {"/faye.js", :cowboy_static, {:priv_file, :pixie, "faye.js"}}
         ]
