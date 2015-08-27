@@ -1,6 +1,8 @@
 defmodule Pixie.Client.State do
   alias Pixie.Client
 
+  def unconnected?(%Client{state: :unconnected}), do: true
+  def unconnected?(%Client{state: _}), do: false
   def connecting?(%Client{state: :connecting}), do: true
   def connecting?(%Client{state: _}), do: false
   def connected?(%Client{state: :connected}), do: true
@@ -8,8 +10,8 @@ defmodule Pixie.Client.State do
   def disconnected?(%Client{state: :disconnected}), do: true
   def disconnected?(%Client{state: _}), do: false
 
-  def connecting! %Client{state: :disconnected}=client do
-    %{client | state: :disconnected}
+  def connecting! %Client{state: :unconnected}=client do
+    %{client | state: :connecting}
   end
 
   def connecting! %Client{state: state} do

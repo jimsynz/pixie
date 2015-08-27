@@ -25,10 +25,12 @@ defmodule PixieConnectSpec do
       client
     end
 
+    let :valid_message, do: %{channel: "/meta/connect", connection_type: "long-polling", client_id: client_id}
+
     finally do: Pixie.Backend.destroy_client client_id
 
     describe "When passed a message with no client_id" do
-      let :message, do: %{channel: "/meta/connect", connection_type: "long-polling"}
+      let :message, do: %{valid_message | client_id: nil}
 
       it "sets a parameter missing response" do
         expect(response.error).to start_with("402:clientId:")
@@ -36,7 +38,7 @@ defmodule PixieConnectSpec do
     end
 
     describe "When passed a message with no channel" do
-      let :message, do: %{client_id: client_id, connection_type: "long-polling"}
+      let :message, do: %{valid_message | channel: nil}
 
       it "sets a parameter missing response" do
         expect(response.error).to start_with("402:channel:")
@@ -44,7 +46,7 @@ defmodule PixieConnectSpec do
     end
 
     describe "When passed a message with no connection_type" do
-      let :message, do: %{client_id: client_id, channel: "/meta/connect"}
+      let :message, do: %{valid_message | connection_type: nil}
 
       it "sets a parameter missing response" do
         expect(response.error).to start_with("402:connectionType:")
@@ -52,7 +54,7 @@ defmodule PixieConnectSpec do
     end
 
     describe "When passed a message with an invalid client_id" do
-      let :message, do: %{client_id: "abcd1234"}
+      let :message, do: %{valid_message | client_id: "abcd1234"}
 
       it "sets a client unknown response" do
         expect(response.error).to start_with("401:abcd1234")

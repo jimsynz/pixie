@@ -1,3 +1,5 @@
+require Logger
+
 defmodule Pixie.Handshake do
   # Is there a way to use the one from Pixie.Bayeux?
   @version "1.0"
@@ -19,7 +21,7 @@ defmodule Pixie.Handshake do
       %{event | response: Error.conntype_mismatch(response, client_transports)}
     else
       client = Backend.create_client
-      %{event | client: client, response: %{response | client_id: client.id}}
+      %{event | client: client, response: %{response | client_id: client.id, supported_connection_types: common_transports}}
     end
   end
 

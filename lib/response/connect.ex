@@ -20,5 +20,19 @@ defmodule Pixie.Response.Connect do
     %Pixie.Response.Connect{}
       |> put(message, :id)
       |> put(message, :client_id)
+      |> Map.put(:advice, advice)
+      |> Map.put(:timestamp, now)
+  end
+
+  defp now do
+    :calendar.universal_time |> :calendar.datetime_to_gregorian_seconds
+  end
+
+  defp advice do
+    %{
+      reconnect: "retry",
+      interval:  0,
+      timeout:   25000
+    }
   end
 end

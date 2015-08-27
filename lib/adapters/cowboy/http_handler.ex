@@ -2,7 +2,6 @@ require Logger
 
 defmodule Pixie.Adapter.CowboyHttp do
   alias Pixie.Adapter.CowboyError, as: Error
-  alias Pixie.Bayeux
 
   @behaviour :cowboy_http_handler
 
@@ -50,13 +49,16 @@ defmodule Pixie.Adapter.CowboyHttp do
     {:ok, body, req} = :cowboy_req.body req
     case byte_size(body) do
       0 -> Error.not_acceptable req
-      _ -> Bayeux.process req, Poison.decode!(body)
+      _ ->
+        Logger.debug "Would like to process post: #{body}"
+        pixie_response req, Poison.decode!(body)
     end
   end
 
   defp process_post req, _is_json_request=false do
     {:ok, queries, req} = :cowboy_req.body_qs req
-    Bayeux.process req, keyword_list_to_map(queries)
+    Logger.debug "Would like to process post #{queries}"
+    pixie_response req, to_map(queries)
   end
 
   defp process_get req do
@@ -66,7 +68,8 @@ defmodule Pixie.Adapter.CowboyHttp do
         Error.not_found req
       _ ->
         {queries, req} = :cowboy_req.qs_vals req
-        Bayeux.process req, keyword_list_to_map(queries)
+        Logger.debug "Would like to process get #{queries}"
+        pixie_response req, to_map(queries)
     end
   end
 
@@ -87,9 +90,32 @@ defmodule Pixie.Adapter.CowboyHttp do
     end
   end
 
-  defp keyword_list_to_map kw_list do
-    Enum.reduce kw_list, %{}, fn({key,value}, map)->
-      Dict.put map, key, value
+  defp to_map enum do
+    Enum.into enum, %{}
+  end
+
+  defp pixie_response req, message do
+    json = case Pixie.Protocol.handle message do
+      events when is_list(events) ->
+        Logger.debug "Sending 200: #{inspect events}"
+        events
+          |> Enum.map(fn
+            %{response: r}-> r
+          end)
+          |> Poison.encode!
+      %{response: r}=event when not is_nil(r) ->
+        Logger.debug "Sending 200: #{inspect event}"
+        Poison.encode! r
+      _ ->
+        "[]"
     end
+    {:ok, req} = :cowboy_req.reply(200, json_headers, json, req)
+    {:ok, req, nil}
+  end
+
+  defp json_headers do
+    [
+      {"content-type", "application/json"}
+    ]
   end
 end
