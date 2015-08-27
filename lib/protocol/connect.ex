@@ -14,7 +14,7 @@ defmodule Pixie.Connect do
   alias Pixie.Backend
   import Pixie.Utils.Map
 
-  def handle %{message: %{client_id: nil}, response: r}=event do
+  def handle %{message: %{client_id: nil}}=event do
     parameter_missing event
   end
 
