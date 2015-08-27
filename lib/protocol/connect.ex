@@ -26,6 +26,7 @@ defmodule Pixie.Connect do
     parameter_missing event
   end
 
+  # Get the client from the backend and call handle again.
   def handle %Event{message: %{client_id: c_id}, client: nil, response: r}=event do
     case Backend.get_client(c_id) do
       nil ->
@@ -35,10 +36,11 @@ defmodule Pixie.Connect do
     end
   end
 
+  # Validate the connection type and respond.
   def handle(%Event{message: %{connection_type: connection_type}=m, client: %Pixie.Client{}, response: %{advice: a}=r}=event) do
     if Set.member? Pixie.Bayeux.transports, connection_type do
       if connection_type == "eventsource" do
-        %{event | message: %{m | advice: %{a | timeout: 0}}}
+        %{event | response: %{m | advice: %{a | timeout: 0}}}
       else
         event
       end
@@ -47,6 +49,7 @@ defmodule Pixie.Connect do
     end
   end
 
+  # Return a parameter_missing error with a list of missing params.
   defp parameter_missing %{message: m, response: r}=event do
     missing = []
       |> missing_key?(m, :channel)
