@@ -1,4 +1,4 @@
-defmodule Pixie.Backend.Memory do
+defmodule Pixie.Backend.Process do
   use GenServer
   alias Pixie.Supervisor
 

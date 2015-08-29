@@ -23,7 +23,7 @@ defmodule Pixie.Supervisor do
   end
 
   def init([]) do
-    backend_options = Application.get_env(:pixie, :backend, [name: :Memory])
+    backend_options = Application.get_env(:pixie, :backend, [name: :Process])
     backend_name    = Dict.get backend_options, :name
     backend_options = Dict.delete backend_options, :name
 
