@@ -10,6 +10,12 @@ Pixie is inspired by Faye and was originally planned as a port, but has
 diverged significantly as I've learned the Erlang way of modelling these
 sorts of problems.
 
+## License
+
+Pixie is Copyright (c) 2015 Resistor Limited and licensed under the terms of
+the MIT Public License (see the LICENSE file included with this distribution
+for more details).
+
 ## Installation
 
 Add `pixie` to your dependencies in the `mix.exs` file:
@@ -24,7 +30,7 @@ end
 
 Then use `mix deps.get` to download Pixie from [hex](https://hex.pm/).
 
-## Supported messages
+## Status
 
 The server is under heavy development, at the moment it can handle the
 following message types:
@@ -48,3 +54,15 @@ in my browser and manually starting a Faye client:
 client = new Faye.Client("http://localhost:4000/pixie");
 client.connect();
 ```
+
+## Running the tests
+
+Run `mix espec`.
+
+## Contributing
+
+1. Fork it
+2. Create your feature branch (`git checkout -b my-new-feature`)
+3. Commit your changes (`git commit -am 'Added some feature'`)
+4. Push to the branch (`git push origin my-new-feature`)
+5. Create new Pull Request

@@ -1,6 +1,8 @@
 defmodule Pixie.Mixfile do
   use Mix.Project
 
+  @source_url "https://bitbucket.org/messagerocket/pixie/"
+
   def project do
     [
       app: :pixie,
@@ -9,8 +11,28 @@ defmodule Pixie.Mixfile do
       build_embedded: Mix.env == :prod,
       start_permanent: Mix.env == :prod,
       deps: deps,
-      preferred_cli_env: [espec: :test]
+      preferred_cli_env: [espec: :test],
+      package: package,
+      description: description,
+      source_url: @source_url
     ]
+  end
+
+  defp package do
+    [
+      contributors: ["James Harton"],
+      licenses: ["MIT"],
+      links: %{
+        "bitbucket" => @source_url,
+        "messagerocket" => "https://messagerocket.co/"
+      }
+    ]
+  end
+
+  defp description do
+    """
+    Faye compatible server written in Elixir.
+    """
   end
 
   def application do
