@@ -10,6 +10,10 @@ Pixie is inspired by Faye and was originally planned as a port, but has
 diverged significantly as I've learned the Erlang way of modelling these
 sorts of problems.
 
+# Heroku Add-on
+
+If you're planning on running Faye on Heroku you're probably going to have a bad time.  Take a look at [MessageRocket](https://messagerocket.co/) as an alternative, and help support the author to maintain more great open source projects.
+
 ## License
 
 Pixie is Copyright (c) 2015 Resistor Limited and licensed under the terms of
