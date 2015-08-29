@@ -6,7 +6,8 @@ defmodule Pixie.Client do
             id:         nil,
             channels:   HashSet.new,
             message_id: 0,
-            transport:  nil
+            transport:  nil,
+            subscriptions: HashSet.new
 
   alias Pixie.Client
   alias Pixie.Client.State
@@ -31,6 +32,7 @@ defmodule Pixie.Client do
   def client_id(c),     do: GenServer.call(c, :client_id)
   def transport(c, t),  do: GenServer.call(c, {:set_transport, t})
   def transport(c),     do: GenServer.call(c, :get_transport)
+  def subscribe(c, channel), do: GenServer.call(c, {:subscribe, channel})
 
   def handle_call(:unconnected?, _f, c),  do: {:reply, State.unconnected?(c), c}
   def handle_call(:connecting?, _f, c),   do: {:reply, State.connecting?(c), c}
@@ -50,6 +52,11 @@ defmodule Pixie.Client do
 
   def handle_call :get_transport, _from, %{transport: transport}=state do
     {:reply, transport, state}
+  end
+
+  def handle_call {:subscribe, channel}, _from, %{subscriptions: subs}=state do
+    subs = Set.put subs, channel
+    {:reply, :ok, %{state | subscriptions: subs}}
   end
 
   def handle_cast(:connecting!, c),   do: {:noreply, State.connecting!(c)}

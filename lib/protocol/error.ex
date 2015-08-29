@@ -33,6 +33,10 @@ defmodule Pixie.Protocol.Error do
     error r, :client_unknown, [client_id]
   end
 
+  def channel_forbidden(r, channel) do
+    error r, :channel_forbidden, [channel]
+  end
+
   defp error r, name, args do
     {code, message} = Map.fetch! @errors, name
     Map.put r, :error, "#{code}:#{Enum.join(args, ",")}:#{message}"

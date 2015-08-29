@@ -24,4 +24,8 @@ defmodule Pixie.Backend do
   def destroy_client id do
     GenServer.call __MODULE__, {:destroy_client, id}
   end
+
+  def subscribe client_id, channel do
+    GenServer.call __MODULE__, {:subscribe, client_id, channel}
+  end
 end

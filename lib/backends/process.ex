@@ -10,7 +10,8 @@ defmodule Pixie.Backend.Process do
     {:ok, %{
         options:    opts,
         namespaces: HashSet.new,
-        clients:    %{}
+        clients:    %{},
+        channels:   %{}
       }}
   end
 
@@ -31,6 +32,10 @@ defmodule Pixie.Backend.Process do
   def handle_call {:destroy_client, id}, _from, state do
     state = destroy_client(id, state)
     {:reply, :ok, state}
+  end
+
+  def handle_call {:subscribe, client_id, channel}, _from, state do
+    {:reply, :ok, subscribe(client_id, channel, state)}
   end
 
   def handle_cast {:release_namespace, namespace}, state do
@@ -81,5 +86,32 @@ defmodule Pixie.Backend.Process do
     else
       state
     end
+  end
+
+  defp create_channel channel, %{channels: channels}=state do
+    id = "channel:#{channel}"
+    {:ok, pid} = Supervisor.add_worker Pixie.Channel, id, [channel]
+    channels = Map.put channels, channel, pid
+    {pid, %{state | channels: channels}}
+  end
+
+  defp get_channel channel, %{channels: channels} do
+    Map.get channels, channel
+  end
+
+  defp ensure_channel channel, state do
+    case get_channel channel, state do
+      nil -> create_channel channel, state
+      pid -> {pid, state}
+    end
+  end
+
+  defp subscribe client_id, channel_name, state do
+    client           = get_client client_id, state
+    {channel, state} = ensure_channel channel_name, state
+
+    Pixie.Client.subscribe client, channel
+    Pixie.Channel.subscribe channel, client
+    state
   end
 end

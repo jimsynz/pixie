@@ -9,25 +9,16 @@
 #                                                     * timestamp
 
 defmodule Pixie.Connect do
-  alias Pixie.Event
   alias Pixie.Protocol.Error
   alias Pixie.Backend
   import Pixie.Utils.Map
 
-  def handle %{message: %{client_id: nil}}=event do
-    parameter_missing event
-  end
-
-  def handle %{message: %{channel: nil}}=event do
-    parameter_missing event
-  end
-
-  def handle %{message: %{connection_type: nil}}=event do
-    parameter_missing event
-  end
+  def handle(%{message: %{client_id: nil}}=event),       do: parameter_missing(event)
+  def handle(%{message: %{channel: nil}}=event),         do: parameter_missing(event)
+  def handle(%{message: %{connection_type: nil}}=event), do: parameter_missing(event)
 
   # Get the client from the backend and call handle again.
-  def handle %Event{message: %{client_id: c_id}, client: nil, response: r}=event do
+  def handle %{message: %{client_id: c_id}, client: nil, response: r}=event do
     case Backend.get_client(c_id) do
       nil ->
         %{event | response: Error.client_unknown(r, c_id)}
@@ -37,7 +28,7 @@ defmodule Pixie.Connect do
   end
 
   # Validate the connection type and respond.
-  def handle(%Event{message: %{connection_type: connection_type}, client: client, response: %{advice: a}=r}=event) when is_pid(client) do
+  def handle(%{message: %{connection_type: connection_type}, client: client, response: %{advice: a}=r}=event) when is_pid(client) do
     if Set.member? Pixie.Bayeux.transports, connection_type do
       transport = Pixie.Client.transport client, connection_type
       advice    = Pixie.Transport.advice transport, a

@@ -31,11 +31,18 @@ defmodule Pixie.Transport.LongPolling do
     end
   end
 
-  # If a second adapter tries to await events then we reply with an
-  # empty list to send back to the client because we can have only
-  # one waiting adapter at a time.
-  def handle_call {:await, events}, _from, state do
-    {:reply, [], enqueue_events(events, state)}
+  # If a second adapter connects while we're still waiting for an old one
+  # to timeout it will kill the timeout, so we send an empty reply to the
+  # old adapter to get it to close it's connection then we run the usual
+  # enqueuing logic.
+  def handle_call {:await, events}, from, {old, queued_events} do
+    GenServer.reply old, []
+    case enqueue_events(events, {from, queued_events}) do
+      {nil, _}=state ->
+        {:noreply, state}
+      state ->
+        {:noreply, state, Pixie.timeout}
+    end
   end
 
   def handle_cast {:enqueue, events}, state do

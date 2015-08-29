@@ -1,3 +1,5 @@
+require Logger
+
 defmodule Pixie.Protocol do
 
   def handle(messages) when is_list(messages) do
@@ -23,6 +25,10 @@ defmodule Pixie.Protocol do
 
   defp dispatch %Pixie.Event{message: %Pixie.Message.Disconnect{}}=event do
     Pixie.Disconnect.handle event
+  end
+
+  defp dispatch %Pixie.Event{message: %Pixie.Message.Subscribe{}}=event do
+    Pixie.Subscribe.handle event
   end
 
   defp only_handshake [] do

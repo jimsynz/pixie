@@ -24,8 +24,8 @@ defmodule Pixie.Disconnect do
     end
   end
 
-  def handle(%{message: %{client_id: c_id}, client: c}=event) when is_pid(c) do
-    Backend.destroy_client(c_id)
+  def handle(%{message: %{client_id: c_id}}=event) do
+    Task.async Backend, :destroy_client, [c_id]
     event
   end
 
