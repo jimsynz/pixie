@@ -1,4 +1,5 @@
-%{"cowboy": {:hex, :cowboy, "1.0.2"},
+%{"combine": {:hex, :combine, "0.5.2"},
+  "cowboy": {:hex, :cowboy, "1.0.2"},
   "cowlib": {:hex, :cowlib, "1.0.1"},
   "erlfaye": {:git, "git://github.com/antoniogarrote/erlfaye.git", "366227ac6c671e557cedb047c620e69ed3f94b3b", []},
   "espec": {:hex, :espec, "0.7.0"},
@@ -9,4 +10,6 @@
   "plug": {:hex, :plug, "0.13.0"},
   "poison": {:hex, :poison, "1.4.0"},
   "ranch": {:hex, :ranch, "1.1.0"},
-  "secure_random": {:hex, :secure_random, "0.1.1"}}
+  "secure_random": {:hex, :secure_random, "0.1.1"},
+  "timex": {:hex, :timex, "0.19.2"},
+  "tzdata": {:hex, :tzdata, "0.1.7"}}

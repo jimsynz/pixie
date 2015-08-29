@@ -25,7 +25,8 @@ defmodule Pixie.Response.Connect do
   end
 
   defp now do
-    :calendar.universal_time |> :iso8601.format
+    {:ok, timestamp} = Timex.Date.now |> Timex.DateFormat.format("{ISO}")
+    timestamp
   end
 
   defp advice do
