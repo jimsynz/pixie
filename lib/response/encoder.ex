@@ -1,5 +1,3 @@
-require Logger
-
 defmodule Pixie.Response.Encoder do
   import Pixie.Utils.Map
 

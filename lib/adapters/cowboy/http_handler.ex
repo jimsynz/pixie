@@ -15,8 +15,7 @@ defmodule Pixie.Adapter.CowboyHttp do
 
   def handle req, _state do
     {method, req} = :cowboy_req.method(req)
-    response = process req, method
-    response
+    process req, method
   end
 
   def terminate _reason, _req, _state do

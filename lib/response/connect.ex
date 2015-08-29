@@ -32,7 +32,7 @@ defmodule Pixie.Response.Connect do
     %{
       reconnect: "retry",
       interval:  0,
-      timeout:   25000
+      timeout:   Pixie.timeout
     }
   end
 end

@@ -17,9 +17,13 @@ defmodule Pixie.Supervisor do
   end
 
   def terminate_worker id do
-    :ok = Supervisor.terminate_child __MODULE__, id
-    :ok = Supervisor.delete_child __MODULE__, id
-    :ok
+    Supervisor.terminate_child __MODULE__, id
+    Supervisor.delete_child __MODULE__, id
+  end
+
+  def replace_worker module, id, args do
+    terminate_worker id
+    add_worker module, id, args
   end
 
   def init([]) do

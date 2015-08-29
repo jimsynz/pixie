@@ -37,13 +37,11 @@ defmodule Pixie.Connect do
   end
 
   # Validate the connection type and respond.
-  def handle(%Event{message: %{connection_type: connection_type}=m, client: client, response: %{advice: a}=r}=event) when is_pid(client) do
+  def handle(%Event{message: %{connection_type: connection_type}, client: client, response: %{advice: a}=r}=event) when is_pid(client) do
     if Set.member? Pixie.Bayeux.transports, connection_type do
-      if connection_type == "eventsource" do
-        %{event | response: %{m | advice: %{a | timeout: 0}}}
-      else
-        event
-      end
+      transport = Pixie.Client.transport client, connection_type
+      advice    = Pixie.Transport.advice transport, a
+      %{event | response: %{r | advice: advice}}
     else
       %{event | response: Error.conntype_mismatch(r, [connection_type])}
     end

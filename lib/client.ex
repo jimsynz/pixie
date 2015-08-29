@@ -5,7 +5,8 @@ defmodule Pixie.Client do
   defstruct state:      :unconnected,
             id:         nil,
             channels:   HashSet.new,
-            message_id: 0
+            message_id: 0,
+            transport:  nil
 
   alias Pixie.Client
   alias Pixie.Client.State
@@ -28,6 +29,8 @@ defmodule Pixie.Client do
   def disconnected!(c), do: GenServer.cast(c, :disconnected!)
 
   def client_id(c),     do: GenServer.call(c, :client_id)
+  def transport(c, t),  do: GenServer.call(c, {:set_transport, t})
+  def transport(c),     do: GenServer.call(c, :get_transport)
 
   def handle_call(:unconnected?, _f, c),  do: {:reply, State.unconnected?(c), c}
   def handle_call(:connecting?, _f, c),   do: {:reply, State.connecting?(c), c}
@@ -35,6 +38,19 @@ defmodule Pixie.Client do
   def handle_call(:disconnected?, _f, c), do: {:reply, State.disconnected?(c), c}
 
   def handle_call(:client_id, _f, %{id: id}=c), do: {:reply, id, c}
+
+  def handle_call({:set_transport, tname1}, _from, %{transport: {tname2, transport}}=state) when tname1 == tname2 do
+    {:reply, transport, state}
+  end
+
+  def handle_call {:set_transport, transport_name}, _from, %{id: id}=state do
+    {:ok, transport} = Pixie.Transport.get transport_name, id
+    {:reply, transport, %{state | transport: {transport_name, transport}}}
+  end
+
+  def handle_call :get_transport, _from, %{transport: transport}=state do
+    {:reply, transport, state}
+  end
 
   def handle_cast(:connecting!, c),   do: {:noreply, State.connecting!(c)}
   def handle_cast(:connected!, c),    do: {:noreply, State.connected!(c)}

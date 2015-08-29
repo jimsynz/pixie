@@ -5,6 +5,7 @@ defmodule Pixie.Protocol do
       |> Enum.map(&Pixie.Message.init/1)
       |> only_handshake
       |> Enum.map(&handle/1)
+      |> via_transport
   end
 
   def handle message do
@@ -37,6 +38,29 @@ defmodule Pixie.Protocol do
         messages
       message ->
         [message]
+    end
+  end
+
+  defp via_transport [] do
+    []
+  end
+
+  defp via_transport events do
+    case find_transport events do
+      nil -> events
+      t   -> Pixie.Transport.await t, events
+    end
+  end
+
+  defp find_transport events do
+    Enum.find_value events, fn
+      %{client: nil} ->
+        nil
+      %{client: c} ->
+        case Pixie.Client.transport c do
+          {_, pid} when is_pid(pid) -> pid
+          _ -> nil
+        end
     end
   end
 end

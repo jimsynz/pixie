@@ -1,5 +1,3 @@
-require Logger
-
 defmodule Pixie.Handshake do
   # Is there a way to use the one from Pixie.Bayeux?
   @version "1.0"
