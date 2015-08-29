@@ -15,9 +15,7 @@ defmodule Pixie.Adapter.CowboyHttp do
 
   def handle req, _state do
     {method, req} = :cowboy_req.method(req)
-    Logger.debug "handing request:  #{inspect req}"
     response = process req, method
-    Logger.debug "sending response: #{inspect response}"
     response
   end
 

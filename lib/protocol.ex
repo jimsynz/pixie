@@ -20,6 +20,10 @@ defmodule Pixie.Protocol do
     Pixie.Connect.handle event
   end
 
+  defp dispatch %Pixie.Event{message: %Pixie.Message.Disconnect{}}=event do
+    Pixie.Disconnect.handle event
+  end
+
   defp only_handshake [] do
     []
   end

@@ -16,4 +16,7 @@ defmodule Pixie.Message do
     Pixie.Message.Connect.init message
   end
 
+  defp do_init %{channel: "/meta/disconnect"}=message do
+    Pixie.Message.Disconnect.init message
+  end
 end

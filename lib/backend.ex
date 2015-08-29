@@ -4,10 +4,6 @@ defmodule Pixie.Backend do
     apply(module, :start_link, [Pixie.Backend, options])
   end
 
-  def stop do
-    GenServer.call __MODULE__, :stop
-  end
-
   def generate_namespace, do: generate_namespace(32)
   def generate_namespace length do
     GenServer.call __MODULE__, {:generate_namespace, length}
@@ -21,11 +17,11 @@ defmodule Pixie.Backend do
     GenServer.call __MODULE__, :create_client
   end
 
-  def get_client client_id do
-    GenServer.call __MODULE__, {:get_client, client_id}
+  def get_client id do
+    GenServer.call __MODULE__, {:get_client, id}
   end
 
-  def destroy_client client do
-    GenServer.cast __MODULE__, {:destroy_client, client}
+  def destroy_client id do
+    GenServer.call __MODULE__, {:destroy_client, id}
   end
 end

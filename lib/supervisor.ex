@@ -2,7 +2,24 @@ defmodule Pixie.Supervisor do
   use Supervisor
 
   def start_link do
-    Supervisor.start_link(__MODULE__, [])
+    Supervisor.start_link __MODULE__, [], name: __MODULE__
+  end
+
+  def add_worker module, id, args do
+    case Supervisor.start_child __MODULE__, worker_spec(module, id, args) do
+      {:ok, pid} ->
+        {:ok, pid}
+      {:error, {:already_started, pid}} ->
+        {:ok, pid}
+      other ->
+        other
+    end
+  end
+
+  def terminate_worker id do
+    :ok = Supervisor.terminate_child __MODULE__, id
+    :ok = Supervisor.delete_child __MODULE__, id
+    :ok
   end
 
   def init([]) do
@@ -21,5 +38,9 @@ defmodule Pixie.Supervisor do
     end
 
     supervise(children, strategy: :one_for_one)
+  end
+
+  defp worker_spec module, id, args do
+    {id, {module, :start_link, args}, :transient, 5000, :worker, [module]}
   end
 end

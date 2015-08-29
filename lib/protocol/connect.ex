@@ -31,13 +31,13 @@ defmodule Pixie.Connect do
     case Backend.get_client(c_id) do
       nil ->
         %{event | response: Error.client_unknown(r, c_id)}
-      %Pixie.Client{}=client->
+      client ->
         handle %{event | client: client}
     end
   end
 
   # Validate the connection type and respond.
-  def handle(%Event{message: %{connection_type: connection_type}=m, client: %Pixie.Client{}, response: %{advice: a}=r}=event) do
+  def handle(%Event{message: %{connection_type: connection_type}=m, client: client, response: %{advice: a}=r}=event) when is_pid(client) do
     if Set.member? Pixie.Bayeux.transports, connection_type do
       if connection_type == "eventsource" do
         %{event | response: %{m | advice: %{a | timeout: 0}}}

@@ -1,5 +1,6 @@
 defmodule Pixie.Backend.Memory do
   use GenServer
+  alias Pixie.Supervisor
 
   def start_link name, opts do
     GenServer.start_link __MODULE__, opts, name: name
@@ -13,50 +14,27 @@ defmodule Pixie.Backend.Memory do
       }}
   end
 
-  def handle_call {:generate_namespace, length}, _from, %{namespaces: used}=state do
-    {id, used} = generate_id used, length
-    {:reply, id, %{state | namespaces: used}}
+  def handle_call {:generate_namespace, length}, _from, state do
+    {id, state} = generate_namespace length, state
+    {:reply, id, state}
   end
 
-  def handle_call :stop, from, state do
-    GenServer.reply(from, :ok)
-    {:stop, :normal, state}
+  def handle_call :create_client, _from, state do
+    {client, state} = create_client state
+    {:reply, client, state}
   end
 
-  def handle_call :create_client, _from, %{namespaces: used, clients: clients}=state do
-    {id, used} = generate_id used, 32
-    client     = Pixie.Client.init(id)
-    clients    = Map.put clients, id, client
-    {:reply, client, %{state | namespaces: used, clients: clients}}
+  def handle_call {:get_client, id}, _from, state do
+    {:reply, get_client(id, state), state}
   end
 
-  def handle_call {:get_client, client_id}, _from, %{clients: clients}=state do
-    {:reply, Map.get(clients, client_id), state}
+  def handle_call {:destroy_client, id}, _from, state do
+    state = destroy_client(id, state)
+    {:reply, :ok, state}
   end
 
-  def handle_cast {:destroy_client, %Pixie.Client{}=client}, %{clients: clients}=state do
-    {:noreply, %{state | clients: destroy_client(clients, client)}}
-  end
-
-  def handle_cast {:destroy_client, client_id}, %{clients: clients}=state do
-    case Map.get clients, client_id do
-      nil ->    {:noreply, state}
-      client -> {:noreply, %{state | clients: destroy_client(clients, client)}}
-    end
-  end
-
-  def handle_cast {:release_namespace, namespace}, %{namespaces: used}=state do
-    used = Set.delete used, namespace
-    {:noreply, %{state | namespaces: used}}
-  end
-
-  def terminate _reason, _state do
-    try do
-      self |> Process.info(:registered_name) |> elem(1) |> Process.unregister
-    rescue
-      _ -> :ok
-    end
-    :ok
+  def handle_cast {:release_namespace, namespace}, state do
+    {:noreply, release_namespace(namespace, state)}
   end
 
   defp generate_id used, length do
@@ -69,8 +47,39 @@ defmodule Pixie.Backend.Memory do
     end
   end
 
-  defp destroy_client clients, client do
-    # TODO unsubscribe channels
-    Map.delete clients, client.id
+  defp generate_namespace length, %{namespaces: used}=state do
+    {id, used} = generate_id used, length
+    {id, %{state | namespaces: used}}
+  end
+
+  defp release_namespace id, %{namespaces: used}=state do
+    used = Set.delete used, id
+    %{state | namespaces: used}
+  end
+
+  defp create_client %{clients: clients}=state do
+    {id, state} = generate_namespace 32, state
+    {:ok, pid} = Supervisor.add_worker Pixie.Client, id, [id]
+    clients = Map.put clients, id, pid
+    {{id, pid}, %{state | clients: clients}}
+  end
+
+  defp client_exists? id, %{clients: clients} do
+    Map.has_key? clients, id
+  end
+
+  defp get_client id, %{clients: clients} do
+    Map.get clients, id
+  end
+
+  defp destroy_client id, %{clients: clients}=state do
+    if client_exists? id, state do
+      Supervisor.terminate_worker id
+      clients = Map.delete clients, id
+      state = release_namespace id, state
+      %{state | clients: clients}
+    else
+      state
+    end
   end
 end

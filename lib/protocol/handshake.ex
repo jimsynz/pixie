@@ -20,8 +20,8 @@ defmodule Pixie.Handshake do
     if Enum.empty? common_transports do
       %{event | response: Error.conntype_mismatch(response, client_transports)}
     else
-      client = Backend.create_client
-      %{event | client: client, response: %{response | client_id: client.id, supported_connection_types: common_transports}}
+      {client_id, client} = Backend.create_client
+      %{event | client: client, response: %{response | client_id: client_id, supported_connection_types: common_transports}}
     end
   end
 

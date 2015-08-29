@@ -7,6 +7,10 @@ defmodule Pixie.Response do
     Pixie.Response.Connect.init message
   end
 
+  def init %Pixie.Message.Disconnect{}=message do
+    Pixie.Response.Disconnect.init message
+  end
+
   def successful?(%{error: error}) when error == nil do
     true
   end
