@@ -1,10 +1,10 @@
-defmodule PixieBackendsMemorySpec do
+defmodule PixieBackendsProcessSpec do
   use ESpec
-  alias Pixie.Backend.Memory
+  alias Pixie.Backend.Process
 
   describe "init" do
     it "returns the initial state" do
-      {:ok, %{namespaces: ns, options: opts}} = Memory.init :foo
+      {:ok, %{namespaces: ns, options: opts}} = Process.init :foo
       expect(ns.__struct__).to eq(HashSet)
       expect(opts).to eq(:foo)
     end
@@ -15,12 +15,12 @@ defmodule PixieBackendsMemorySpec do
 
     describe :generate_namespace do
       it "returns the correct length namespace" do
-        {:reply, ns, _} = Memory.handle_call {:generate_namespace, 27}, self, state
+        {:reply, ns, _} = Process.handle_call {:generate_namespace, 27}, self, state
         expect(ns).to have_length(27)
       end
 
       it "stores the generated namespace in the state" do
-        {:reply, ns, %{namespaces: used}} = Memory.handle_call {:generate_namespace, 27}, self, state
+        {:reply, ns, %{namespaces: used}} = Process.handle_call {:generate_namespace, 27}, self, state
         expect(used).to have(ns)
       end
 
@@ -29,18 +29,18 @@ defmodule PixieBackendsMemorySpec do
 
     describe :release_namespace do
       it "removes the namespace from the state" do
-        {:reply, ns, %{namespaces: used}=state} = Memory.handle_call {:generate_namespace, 27}, self, state
+        {:reply, ns, %{namespaces: used}=state} = Process.handle_call {:generate_namespace, 27}, self, state
 
         expect(used).to have(ns)
-        {:noreply, %{namespaces: used}} = Memory.handle_cast {:release_namespace, ns}, state
+        {:noreply, %{namespaces: used}} = Process.handle_cast {:release_namespace, ns}, state
         expect(used).not_to have(ns)
       end
     end
 
     describe :create_client do
       it "generates a new client" do
-        {:reply, client, _state} = Memory.handle_call :create_client, self, state
-        expect(client.__struct__).to eq(Pixie.Client)
+        {:reply, client, _state} = Process.handle_call :create_client, self, state
+        expect(client).not_to be_nil
       end
     end
   end

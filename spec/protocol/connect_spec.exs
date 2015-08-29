@@ -3,8 +3,8 @@ defmodule PixieConnectSpec do
 
   describe "handle" do
     let :client_id do
-      %{id: c_id} = Pixie.Backend.create_client
-      c_id
+      {id, _} = Pixie.Backend.create_client
+      id
     end
 
     let :event do
