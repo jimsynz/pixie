@@ -25,7 +25,7 @@ defmodule Pixie.Response.Connect do
   end
 
   defp now do
-    :calendar.universal_time |> :calendar.datetime_to_gregorian_seconds
+    :calendar.universal_time |> :iso8601.format
   end
 
   defp advice do
