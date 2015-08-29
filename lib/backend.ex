@@ -32,4 +32,8 @@ defmodule Pixie.Backend do
   def unsubscribe client_id, channel do
     GenServer.call __MODULE__, {:unsubscribe, client_id, channel}
   end
+
+  def publish message do
+    GenServer.cast __MODULE__, {:publish, message}
+  end
 end

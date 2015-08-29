@@ -24,11 +24,10 @@ defmodule Pixie.Response.Encoder do
   end
 
   def make_successful response do
-    case Pixie.Response.successful? response do
-      true ->
-        %{response | successful: true}
-      false ->
-        %{response | successful: false, client_id: nil}
+    if Pixie.Response.successful? response do
+      Map.put response, :successful, true
+    else
+      Map.merge response, successful: false, client_id: nil
     end
   end
 end

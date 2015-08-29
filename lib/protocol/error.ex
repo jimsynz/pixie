@@ -37,6 +37,10 @@ defmodule Pixie.Protocol.Error do
     error r, :channel_forbidden, [channel]
   end
 
+  def publish_failed(r, channel) do
+    error r, :publish_failed, [channel]
+  end
+
   defp error r, name, args do
     {code, message} = Map.fetch! @errors, name
     Map.put r, :error, "#{code}:#{Enum.join(args, ",")}:#{message}"

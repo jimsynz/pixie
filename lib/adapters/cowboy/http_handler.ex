@@ -93,16 +93,12 @@ defmodule Pixie.Adapter.CowboyHttp do
 
   defp pixie_response req, message do
     json = case Pixie.Protocol.handle message do
-      events when is_list(events) ->
-        Logger.debug "Sending 200: #{inspect events}"
-        events
-          |> Enum.map(fn
-            %{response: r}-> r
-          end)
-          |> Poison.encode!
-      %{response: r}=event when not is_nil(r) ->
-        Logger.debug "Sending 200: #{inspect event}"
-        Poison.encode! r
+      messages when is_list(messages) ->
+        Logger.debug "Sending 200: #{inspect messages}"
+        Poison.encode! messages
+      message when not is_nil(message) ->
+        Logger.debug "Sending 200: #{inspect message}"
+        Posion.encode! [message]
       _ ->
         "[]"
     end

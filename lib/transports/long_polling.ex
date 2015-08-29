@@ -1,6 +1,5 @@
 defmodule Pixie.Transport.LongPolling do
   use GenServer
-  alias Pixie.Event
 
   def start_link do
     GenServer.start_link __MODULE__, []
@@ -11,7 +10,7 @@ defmodule Pixie.Transport.LongPolling do
   end
 
   def terminate _, state do
-    dequeue_events state
+    dequeue_messages state
     :ok
   end
 
@@ -20,10 +19,10 @@ defmodule Pixie.Transport.LongPolling do
     {:reply, advice, state}
   end
 
-  # Await events to send back to the adapter, unless there's already
+  # Await messages to send back to the adapter, unless there's already
   # an adapter process waiting for it.
-  def handle_call {:await, events}, from, {nil, queued_events} do
-    case enqueue_events(events, {from, queued_events}) do
+  def handle_call {:await, messages}, from, {nil, queued_messages} do
+    case enqueue_messages(messages, {from, queued_messages}) do
       {nil, _}=state ->
         {:noreply, state}
       state ->
@@ -35,9 +34,9 @@ defmodule Pixie.Transport.LongPolling do
   # to timeout it will kill the timeout, so we send an empty reply to the
   # old adapter to get it to close it's connection then we run the usual
   # enqueuing logic.
-  def handle_call {:await, events}, from, {old, queued_events} do
+  def handle_call {:await, messages}, from, {old, queued_messages} do
     GenServer.reply old, []
-    case enqueue_events(events, {from, queued_events}) do
+    case enqueue_messages(messages, {from, queued_messages}) do
       {nil, _}=state ->
         {:noreply, state}
       state ->
@@ -45,33 +44,33 @@ defmodule Pixie.Transport.LongPolling do
     end
   end
 
-  def handle_cast {:enqueue, events}, state do
-    {:noreply, enqueue_events(events, state)}
+  def handle_cast {:enqueue, messages}, state do
+    {:noreply, enqueue_messages(messages, state)}
   end
 
   def handle_info :timeout, state do
-    {:noreply, dequeue_events state}
+    {:noreply, dequeue_messages state}
   end
 
-  defp enqueue_events events, {nil, queued_events} do
-    {nil, queued_events ++ events}
+  defp enqueue_messages messages, {nil, queued_messages} do
+    {nil, queued_messages ++ messages}
   end
 
-  defp enqueue_events events, {waiting_adapter, queued_events} do
-    events = queued_events ++ events
-    if Event.respond_immediately? events do
-      dequeue_events {waiting_adapter, events}
+  defp enqueue_messages messages, {waiting_adapter, queued_messages} do
+    messages = queued_messages ++ messages
+    if Pixie.Protocol.respond_immediately? messages do
+      dequeue_messages {waiting_adapter, messages}
     else
-      {waiting_adapter, events}
+      {waiting_adapter, messages}
     end
   end
 
-  def dequeue_events {nil, queued_events} do
-    {nil, queued_events}
+  def dequeue_messages {nil, queued_messages} do
+    {nil, queued_messages}
   end
 
-  def dequeue_events {waiting_adapter, queued_events} do
-    GenServer.reply(waiting_adapter, queued_events)
+  def dequeue_messages {waiting_adapter, queued_messages} do
+    GenServer.reply(waiting_adapter, queued_messages)
     {nil, []}
   end
 end

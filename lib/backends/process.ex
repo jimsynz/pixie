@@ -1,3 +1,5 @@
+require Logger
+
 defmodule Pixie.Backend.Process do
   use GenServer
   alias Pixie.Supervisor
@@ -44,6 +46,11 @@ defmodule Pixie.Backend.Process do
 
   def handle_cast {:release_namespace, namespace}, state do
     {:noreply, release_namespace(namespace, state)}
+  end
+
+  def handle_cast {:publish, message}, %{channels: channels}=state do
+    Task.async fn -> publish message, Map.values(channels) end
+    {:noreply, state}
   end
 
   defp generate_id used, length do
@@ -138,6 +145,23 @@ defmodule Pixie.Backend.Process do
     case Pixie.Channel.unsubscribe channel, client do
       0 -> destroy_channel channel, state
       _ -> state
+    end
+  end
+
+  defp publish %{channel: channel_name}=message, possible_channels do
+    Logger.debug "Publishing #{inspect message}"
+    # Reduce all subscribed clients to a single set so that
+    # each client only receives the message once.
+    receivers = Enum.reduce possible_channels, HashSet.new, fn(channel, acc)->
+      if Pixie.Channel.matches? channel, channel_name do
+        Set.union acc, Pixie.Channel.subscribers(channel)
+      else
+        acc
+      end
+    end
+    # Publish the message to each client.
+    Enum.each receivers, fn(client)->
+      Pixie.Client.publish client, message
     end
   end
 end

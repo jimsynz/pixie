@@ -15,6 +15,18 @@ defmodule Pixie.Protocol do
     dispatch %Pixie.Event{message: message, response: response}
   end
 
+  def respond_immediately?(messages) when is_list(messages) do
+    Enum.any? messages, &respond_immediately?/1
+  end
+  def respond_immediately?(%Pixie.Response.Handshake{}),    do: true
+  def respond_immediately?(%Pixie.Response.Disconnect{}),   do: true
+  def respond_immediately?(%Pixie.Response.Publish{}),      do: true
+  def respond_immediately?(%Pixie.Response.Subscribe{}),    do: Pixie.subscribe_immediately?
+  def respond_immediately?(%Pixie.Response.Unsubscribe{}),  do: Pixie.subscribe_immediately?
+  def respond_immediately?(%{error: e}) when not is_nil(e), do: true
+  def respond_immediately?(%Pixie.Message.Publish{}),       do: true
+  def respond_immediately?(_),                              do: false
+
   defp dispatch %Pixie.Event{message: %Pixie.Message.Handshake{}}=event do
     Pixie.Handshake.handle event
   end
@@ -33,6 +45,10 @@ defmodule Pixie.Protocol do
 
   defp dispatch %Pixie.Event{message: %Pixie.Message.Unsubscribe{}}=event do
     Pixie.Unsubscribe.handle event
+  end
+
+  defp dispatch %Pixie.Event{message: %Pixie.Message.Publish{}}=event do
+    Pixie.Publish.handle event
   end
 
   defp only_handshake [] do
@@ -56,9 +72,10 @@ defmodule Pixie.Protocol do
   end
 
   defp via_transport events do
+    responses = Enum.map(events, fn %{response: r}-> r end)
     case find_transport events do
-      nil -> events
-      t   -> Pixie.Transport.await t, events
+      nil -> responses
+      t   -> Pixie.Transport.await t, responses
     end
   end
 

@@ -47,7 +47,8 @@ defmodule Pixie.Mixfile do
       {:cowboy,        "~> 1.0.0"},
       {:poison,        "~> 1.4.0"},
       {:secure_random, "~> 0.1"},
-      {:iso8601,       github: "seansawyer/erlang_iso8601", tag: "1.1.1", app: false},
+      {:ex_minimatch,  "~> 0.0.1"},
+      {:iso8601,       github: "seansawyer/erlang_iso8601", tag: "1.1.1", compile: false},
       {:espec,         "~> 0.7.0", only: :test}
     ]
   end

@@ -19,7 +19,11 @@ defmodule Pixie.Response do
     Pixie.Response.Unsubscribe.init message
   end
 
-  def successful?(%{error: error}) when error == nil do
+  def init %Pixie.Message.Publish{}=message do
+    Pixie.Response.Publish.init message
+  end
+
+  def successful?(%{error: nil}) do
     true
   end
 

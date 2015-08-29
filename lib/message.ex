@@ -27,4 +27,8 @@ defmodule Pixie.Message do
   defp do_init %{channel: "/meta/unsubscribe"}=message do
     Pixie.Message.Unsubscribe.init message
   end
+
+  defp do_init message do
+    Pixie.Message.Publish.init message
+  end
 end

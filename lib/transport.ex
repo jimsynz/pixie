@@ -16,11 +16,11 @@ defmodule Pixie.Transport do
     GenServer.call transport, {:advice, advice}
   end
 
-  def await transport, events do
-    GenServer.call transport, {:await, events}, Pixie.timeout * 2
+  def await transport, messages do
+    GenServer.call transport, {:await, messages}, Pixie.timeout * 2
   end
 
-  def enqueue transport, events do
-    GenServer.cast transport, {:enqueue, events}
+  def enqueue transport, messages do
+    GenServer.cast transport, {:enqueue, messages}
   end
 end

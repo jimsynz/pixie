@@ -1,8 +1,8 @@
 defmodule Pixie.Utils.Response do
-  def put handshake, message, field do
+  def put response, message, field do
     case Map.get message, field do
-      nil -> handshake
-      v   -> Map.put handshake, field, v
+      nil -> response
+      v   -> Map.put response, field, v
     end
   end
 end

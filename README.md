@@ -42,6 +42,9 @@ following message types:
   - Handshake
   - Connect
   - Disconnect
+  - Subscribe
+  - Unsubscribe
+  - Publish
 
 over the following transports:
 

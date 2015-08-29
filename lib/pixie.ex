@@ -21,7 +21,19 @@ defmodule Pixie do
     Application.get_env(:pixie, :backend, [name: :Process])
   end
 
-  def subscribe_immediately do
+  def subscribe_immediately? do
     Application.get_env(:pixie, :subscribe_immediately, false)
+  end
+
+  def publish %Pixie.Message.Publish{}=message do
+    Pixie.Backend.publish message
+  end
+
+  def publish %{}=message do
+    publish Pixie.Message.Publish.init(message)
+  end
+
+  def publish channel, %{}=data do
+    publish %{channel: channel, data: data}
   end
 end

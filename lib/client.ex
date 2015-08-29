@@ -1,3 +1,5 @@
+require Logger
+
 defmodule Pixie.Client do
   use GenServer
   @valid_states ~w| unconnected connecting connected disconnected |a
@@ -34,6 +36,8 @@ defmodule Pixie.Client do
   def transport(c),     do: GenServer.call(c, :get_transport)
   def subscribe(c, channel), do: GenServer.call(c, {:subscribe, channel})
   def unsubscribe(c, channel), do: GenServer.call(c, {:unsubscribe, channel})
+  def subscribed?(c, channel_name), do: GenServer.call(c, {:subscribed?, channel_name})
+  def publish(c, message), do: GenServer.cast(c, {:publish, message})
 
   def handle_call(:unconnected?, _f, c),  do: {:reply, State.unconnected?(c), c}
   def handle_call(:connecting?, _f, c),   do: {:reply, State.connecting?(c), c}
@@ -65,7 +69,25 @@ defmodule Pixie.Client do
     {:reply, :ok, %{state | subscriptions: subs}}
   end
 
+  def handle_call {:subscribed?, channel}, _from, %{subscriptions: subs}=state do
+    matches = Enum.any?(subs, fn(sub)-> Pixie.Channel.matches? sub, channel end)
+    {:reply, matches, state}
+  end
+
   def handle_cast(:connecting!, c),   do: {:noreply, State.connecting!(c)}
   def handle_cast(:connected!, c),    do: {:noreply, State.connected!(c)}
   def handle_cast(:disconnected!, c), do: {:noreply, State.disconnected!(c)}
+
+  # We can't do anything if the client has no connected transport.
+  # FIXME We should queue these on the client and despool them once
+  # the client is active again.
+  def handle_cast({:publish, message}, %{transport: nil}=state) do
+    Logger.debug "Discarding message: #{inspect message}, no transport available"
+    {:noreply, state}
+  end
+
+  def handle_cast({:publish, message}, %{transport: {_, transport}}=state) do
+    Pixie.Transport.enqueue transport, [message]
+    {:noreply, state}
+  end
 end
