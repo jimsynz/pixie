@@ -16,4 +16,8 @@ defmodule Pixie do
   def timeout do
     Application.get_env(:pixie, :timeout, @default_timeout)
   end
+
+  def backend_options do
+    Application.get_env(:pixie, :backend, [name: :Process])
+  end
 end
