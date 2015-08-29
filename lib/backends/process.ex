@@ -38,6 +38,10 @@ defmodule Pixie.Backend.Process do
     {:reply, :ok, subscribe(client_id, channel, state)}
   end
 
+  def handle_call {:unsubscribe, client_id, channel}, _from, state do
+    {:reply, :ok, unsubscribe(client_id, channel, state)}
+  end
+
   def handle_cast {:release_namespace, namespace}, state do
     {:noreply, release_namespace(namespace, state)}
   end
@@ -95,6 +99,17 @@ defmodule Pixie.Backend.Process do
     {pid, %{state | channels: channels}}
   end
 
+  defp destroy_channel channel, %{channels: channels}=state do
+    if Map.has_key? channels, channel do
+      id = "channel:#{channel}"
+      Supervisor.terminate_worker id
+      channels = Map.delete channels, channel
+      %{state | channels: channels}
+    else
+      state
+    end
+  end
+
   defp get_channel channel, %{channels: channels} do
     Map.get channels, channel
   end
@@ -113,5 +128,16 @@ defmodule Pixie.Backend.Process do
     Pixie.Client.subscribe client, channel
     Pixie.Channel.subscribe channel, client
     state
+  end
+
+  defp unsubscribe client_id, channel_name, state do
+    client           = get_client client_id, state
+    {channel, state} = ensure_channel channel_name, state
+
+    Pixie.Client.unsubscribe client, channel
+    case Pixie.Channel.unsubscribe channel, client do
+      0 -> destroy_channel channel, state
+      _ -> state
+    end
   end
 end

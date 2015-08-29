@@ -28,4 +28,8 @@ defmodule Pixie.Backend do
   def subscribe client_id, channel do
     GenServer.call __MODULE__, {:subscribe, client_id, channel}
   end
+
+  def unsubscribe client_id, channel do
+    GenServer.call __MODULE__, {:unsubscribe, client_id, channel}
+  end
 end

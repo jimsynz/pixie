@@ -31,6 +31,10 @@ defmodule Pixie.Protocol do
     Pixie.Subscribe.handle event
   end
 
+  defp dispatch %Pixie.Event{message: %Pixie.Message.Unsubscribe{}}=event do
+    Pixie.Unsubscribe.handle event
+  end
+
   defp only_handshake [] do
     []
   end

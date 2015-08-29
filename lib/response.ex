@@ -15,6 +15,10 @@ defmodule Pixie.Response do
     Pixie.Response.Subscribe.init message
   end
 
+  def init %Pixie.Message.Unsubscribe{}=message do
+    Pixie.Response.Unsubscribe.init message
+  end
+
   def successful?(%{error: error}) when error == nil do
     true
   end

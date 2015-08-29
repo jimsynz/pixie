@@ -33,6 +33,7 @@ defmodule Pixie.Client do
   def transport(c, t),  do: GenServer.call(c, {:set_transport, t})
   def transport(c),     do: GenServer.call(c, :get_transport)
   def subscribe(c, channel), do: GenServer.call(c, {:subscribe, channel})
+  def unsubscribe(c, channel), do: GenServer.call(c, {:unsubscribe, channel})
 
   def handle_call(:unconnected?, _f, c),  do: {:reply, State.unconnected?(c), c}
   def handle_call(:connecting?, _f, c),   do: {:reply, State.connecting?(c), c}
@@ -56,6 +57,11 @@ defmodule Pixie.Client do
 
   def handle_call {:subscribe, channel}, _from, %{subscriptions: subs}=state do
     subs = Set.put subs, channel
+    {:reply, :ok, %{state | subscriptions: subs}}
+  end
+
+  def handle_call {:unsubscribe, channel}, _from, %{subscriptions: subs}=state do
+    subs = Set.delete subs, channel
     {:reply, :ok, %{state | subscriptions: subs}}
   end
 
