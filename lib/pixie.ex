@@ -20,4 +20,8 @@ defmodule Pixie do
   def backend_options do
     Application.get_env(:pixie, :backend, [name: :Process])
   end
+
+  def subscribe_immediately do
+    Application.get_env(:pixie, :subscribe_immediately, false)
+  end
 end

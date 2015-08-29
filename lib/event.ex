@@ -16,6 +16,14 @@ defmodule Pixie.Event do
     true
   end
 
+  def respond_immediately? %{response: %Pixie.Response.Subscribe{}} do
+    Pixie.subscribe_immediately
+  end
+
+  def respond_immediately? %{response: %Pixie.Response.Unsubscribe{}} do
+    Pixie.subscribe_immediately
+  end
+
   def respond_immediately?(%{response: %{error: e}}) when not is_nil(e) do
     true
   end
