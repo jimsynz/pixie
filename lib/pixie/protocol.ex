@@ -85,7 +85,7 @@ defmodule Pixie.Protocol do
         nil
       %{client: c} ->
         case Pixie.Client.transport c do
-          {_, pid} when is_pid(pid) -> pid
+          pid when is_pid(pid) -> pid
           _ -> nil
         end
     end

@@ -1,164 +1,250 @@
 defmodule Pixie.Backend.Process do
+  use Pixie.Backend
   use GenServer
-  alias Pixie.Supervisor
+  require Logger
 
-  def start_link name, opts do
-    GenServer.start_link __MODULE__, opts, name: name
+  @moduledoc """
+  This is the default persistence backend for Pixie, which stores data in an
+  ETS table, which means it will only persist as long as this process is
+  running.
+  """
+
+  def start_link options do
+    GenServer.start_link __MODULE__, options, name: __MODULE__
   end
 
-  def init(opts) do
-    {:ok, %{
-        options:    opts,
-        namespaces: HashSet.new,
-        clients:    %{},
-        channels:   %{}
-      }}
+  def init _options do
+    table = :ets.new __MODULE__, [:set, :protected, :named_table, read_concurrency: true]
+    :ets.insert table, default_state
+    {:ok, table}
   end
 
-  def handle_call {:generate_namespace, length}, _from, state do
-    {id, state} = generate_namespace length, state
-    {:reply, id, state}
+  def generate_namespace length do
+    GenServer.call __MODULE__, {:generate_namespace, length}
   end
 
-  def handle_call :create_client, _from, state do
-    {client, state} = create_client state
-    {:reply, client, state}
+  def release_namespace namespace do
+    GenServer.call __MODULE__, {:release_namespace, namespace}
   end
 
-  def handle_call {:get_client, id}, _from, state do
-    {:reply, get_client(id, state), state}
+  def create_client do
+    GenServer.call __MODULE__, :create_client
   end
 
-  def handle_call {:destroy_client, id}, _from, state do
-    state = destroy_client(id, state)
-    {:reply, :ok, state}
+  def get_client client_id do
+    key = "client:#{client_id}"
+    case :ets.lookup __MODULE__, key do
+      [{^key, client}] -> client
+      _ -> nil
+    end
   end
 
-  def handle_call {:subscribe, client_id, channel}, _from, state do
-    {:reply, :ok, subscribe(client_id, channel, state)}
+  def destroy_client client_id, reason do
+    GenServer.call __MODULE__, {:destroy_client, client_id, reason}
   end
 
-  def handle_call {:unsubscribe, client_id, channel}, _from, state do
-    {:reply, :ok, unsubscribe(client_id, channel, state)}
+  def subscribe client_id, channel_name do
+    client_key = "client:#{client_id}"
+    case :ets.lookup __MODULE__, client_key do
+      [{^client_key, _client}] ->
+        GenServer.call __MODULE__, {:subscribe, client_id, channel_name}
+      _ -> :ok
+    end
   end
 
-  def handle_cast {:release_namespace, namespace}, state do
-    {:noreply, release_namespace(namespace, state)}
+  def unsubscribe client_id, channel_name do
+    client_key = "client:#{client_id}"
+    case :ets.lookup __MODULE__, client_key do
+      [{^client_key, _client}] ->
+        GenServer.call __MODULE__, {:unsubscribe, client_id, channel_name}
+      _ -> :ok
+    end
   end
 
-  def handle_cast {:publish, message}, %{channels: channels}=state do
-    Task.async fn -> publish message, Map.values(channels) end
-    {:noreply, state}
+  def subscribers_of channel_pattern do
+    case :ets.lookup __MODULE__, "all_channels" do
+      [{"all_channels", channels}] ->
+        # Reduce all subscribed clients of all matching channels to a single
+        # set so that each client only receives the message once.
+        Enum.reduce channels, HashSet.new, fn(channel_name, set)->
+          matcher = compiled_matcher_for channel_name
+          if channel_matches? matcher, channel_pattern do
+            Set.union set, get_set("channel_subscriptions:#{channel_name}")
+          else
+            set
+          end
+        end
+      _ -> HashSet.new
+    end
   end
 
-  defp generate_id used, length do
+  def client_subscribed? client_id, channel_name do
+    key = "client_subscriptions:#{client_id}"
+    case :ets.lookup __MODULE__, key do
+      [{^key, channels}] ->
+        Set.member? channels, channel_name
+      _ -> false
+    end
+  end
+
+  def queue_for client_id, messages do
+    client_key = "client:#{client_id}"
+    case :ets.lookup __MODULE__, client_key do
+      [{^client_key, _client}] ->
+        GenServer.call __MODULE__, {:queue_messages, client_id, messages}
+      _ -> :ok
+    end
+  end
+
+  def dequeue_for client_id do
+    queue_key = "queue_of:#{client_id}"
+    case :ets.lookup __MODULE__, queue_key do
+      [{^queue_key, messages}] ->
+        GenServer.cast __MODULE__, {:dequeue_messages, client_id, Enum.count(messages)}
+        messages
+      _ -> []
+    end
+  end
+
+  def handle_call {:generate_namespace, length}, _from, table do
+    id = generate_unique_namespace length
+    {:reply, id, table}
+  end
+
+  def handle_call {:release_namespace, namespace}, _from, table do
+    delete_from_set :namespaces, namespace
+    {:reply, :ok, table}
+  end
+
+  def handle_call :create_client, _from, table do
+    client_id  = generate_unique_namespace @default_id_length
+    client_key = "client:#{client_id}"
+    {:ok, client} = Pixie.Supervisor.add_worker Pixie.Client, client_key, [client_id]
+    :ets.insert __MODULE__, [{client_key, client}]
+    add_to_set "all_clients", client_id
+    Logger.info "[#{client_id}]: Client created."
+    {:reply, {client_id, client}, table}
+  end
+
+  def handle_call {:destroy_client, client_id, reason}, _from, table do
+    client_key = "client:#{client_id}"
+    Pixie.Supervisor.terminate_worker client_key
+    delete_from_set "all_clients", client_id
+    :ets.delete __MODULE__, client_key
+    Logger.info "[#{client_id}]: Client destroyed: #{reason}"
+    {:reply, :ok, table}
+  end
+
+  def handle_call {:subscribe, client_id, channel_name}, _from, table do
+    add_to_set "client_subscriptions:#{client_id}", channel_name
+    case add_to_set "channel_subscriptions:#{channel_name}", client_id do
+      1 -> create_channel channel_name
+      _ -> nil
+    end
+    Logger.info "[#{client_id}]: Subscribed #{channel_name}"
+    {:reply, :ok, table}
+  end
+
+  def handle_call {:unsubscribe, client_id, channel_name}, _from, table do
+    delete_from_set "client_subscriptions:#{client_id}", channel_name
+    case delete_from_set "channel_subscriptions:#{channel_name}", client_id do
+      0 -> destroy_channel channel_name
+      _ -> nil
+    end
+    Logger.info "[#{client_id}]: Unsubscribed #{channel_name}"
+    {:reply, :ok, table}
+  end
+
+  def handle_call {:queue_messages, client_id, messages}, _from, table do
+    queue_key = "queue_of:#{client_id}"
+    queue = case :ets.lookup __MODULE__, queue_key do
+      [{^queue_key, queue}] -> queue
+      _               -> []
+    end
+    queue = queue ++ messages
+    :ets.insert __MODULE__, [{queue_key, queue}]
+    {:reply, :ok, table}
+  end
+
+  def handle_cast {:dequeue_messages, client_id, message_count}, table do
+    queue_key = "queue_of:#{client_id}"
+    case :ets.lookup __MODULE__, queue_key do
+      [{^queue_key, queue}] ->
+        queue = Enum.drop queue, message_count
+        if Enum.empty? queue do
+          :ets.delete __MODULE__, queue_key
+        else
+          :ets.insert __MODULE__, [{queue_key, queue}]
+        end
+      _ -> nil
+    end
+
+    {:reply, :ok, table}
+  end
+
+  def create_channel channel_name do
+    add_to_set "all_channels", channel_name
+    :ets.insert __MODULE__, [{"channel_matcher:#{channel_name}", compile_channel_matcher(channel_name)}]
+  end
+
+  defp destroy_channel channel_name do
+    delete_from_set "all_channels", channel_name
+    :ets.delete __MODULE__, "channel_matcher:#{channel_name}"
+  end
+
+  defp compiled_matcher_for channel_name do
+    key = "channel_matcher:#{channel_name}"
+    case :ets.lookup __MODULE__, key do
+      [{^key, matcher}] -> matcher
+      _ -> compile_channel_matcher(channel_name)
+    end
+  end
+
+  defp add_to_set key, value do
+    set = case :ets.lookup __MODULE__, key do
+      [{^key, set}] -> set
+      _             -> HashSet.new
+    end
+    set = Set.put set, value
+    :ets.insert __MODULE__, [{key, set}]
+    Set.size set
+  end
+
+  defp delete_from_set key, value do
+    case :ets.lookup __MODULE__, key do
+      [{^key, set}] ->
+        set = Set.delete set, value
+        if Set.size(set) == 0 do
+          :ets.delete __MODULE__, key
+        else
+          :ets.insert __MODULE__, [{key, set}]
+        end
+        Set.size set
+      _ -> 0
+    end
+  end
+
+  defp get_set key do
+    case :ets.lookup __MODULE__, key do
+      [{^key, set}] -> set
+      _ -> HashSet.new
+    end
+  end
+
+  defp default_state do
+    [
+      namespaces: HashSet.new,
+    ]
+  end
+
+  defp generate_unique_namespace length do
     id = Pixie.Utils.RandomId.generate length
+    used = get_set :namespaces
     if Set.member? used, id do
-      generate_id used, length
+      generate_unique_namespace length
     else
-      used = Set.put used, id
-      {id, used}
-    end
-  end
-
-  defp generate_namespace length, %{namespaces: used}=state do
-    {id, used} = generate_id used, length
-    {id, %{state | namespaces: used}}
-  end
-
-  defp release_namespace id, %{namespaces: used}=state do
-    used = Set.delete used, id
-    %{state | namespaces: used}
-  end
-
-  defp create_client %{clients: clients}=state do
-    {id, state} = generate_namespace 32, state
-    {:ok, pid} = Supervisor.add_worker Pixie.Client, id, [id]
-    clients = Map.put clients, id, pid
-    {{id, pid}, %{state | clients: clients}}
-  end
-
-  defp client_exists? id, %{clients: clients} do
-    Map.has_key? clients, id
-  end
-
-  defp get_client id, %{clients: clients} do
-    Map.get clients, id
-  end
-
-  defp destroy_client id, %{clients: clients}=state do
-    if client_exists? id, state do
-      Supervisor.terminate_worker id
-      clients = Map.delete clients, id
-      state = release_namespace id, state
-      %{state | clients: clients}
-    else
-      state
-    end
-  end
-
-  defp create_channel channel, %{channels: channels}=state do
-    id = "channel:#{channel}"
-    {:ok, pid} = Supervisor.add_worker Pixie.Channel, id, [channel]
-    channels = Map.put channels, channel, pid
-    {pid, %{state | channels: channels}}
-  end
-
-  defp destroy_channel channel, %{channels: channels}=state do
-    if Map.has_key? channels, channel do
-      id = "channel:#{channel}"
-      Supervisor.terminate_worker id
-      channels = Map.delete channels, channel
-      %{state | channels: channels}
-    else
-      state
-    end
-  end
-
-  defp get_channel channel, %{channels: channels} do
-    Map.get channels, channel
-  end
-
-  defp ensure_channel channel, state do
-    case get_channel channel, state do
-      nil -> create_channel channel, state
-      pid -> {pid, state}
-    end
-  end
-
-  defp subscribe client_id, channel_name, state do
-    client           = get_client client_id, state
-    {channel, state} = ensure_channel channel_name, state
-
-    Pixie.Client.subscribe client, channel
-    Pixie.Channel.subscribe channel, client
-    state
-  end
-
-  defp unsubscribe client_id, channel_name, state do
-    client           = get_client client_id, state
-    {channel, state} = ensure_channel channel_name, state
-
-    Pixie.Client.unsubscribe client, channel
-    case Pixie.Channel.unsubscribe channel, client do
-      0 -> destroy_channel channel, state
-      _ -> state
-    end
-  end
-
-  defp publish %{channel: channel_name}=message, possible_channels do
-    # Reduce all subscribed clients to a single set so that
-    # each client only receives the message once.
-    receivers = Enum.reduce possible_channels, HashSet.new, fn(channel, acc)->
-      if Pixie.Channel.matches? channel, channel_name do
-        Set.union acc, Pixie.Channel.subscribers(channel)
-      else
-        acc
-      end
-    end
-    # Publish the message to each client.
-    Enum.each receivers, fn(client)->
-      Pixie.Client.publish client, message
+      add_to_set :namespaces, id
+      id
     end
   end
 end

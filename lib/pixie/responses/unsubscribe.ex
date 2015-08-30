@@ -9,7 +9,7 @@
 #                                                     * id
 
 defmodule Pixie.Response.Unsubscribe do
-  defstruct channel: "/meta/unsubscribe", client_id: nil, error: nil, advice: nil, ext: nil, id: nil
+  defstruct channel: "/meta/unsubscribe", client_id: nil, subscription: nil, error: nil, advice: nil, ext: nil, id: nil
   import Pixie.Utils.Response
 
   def init %Pixie.Message.Unsubscribe{}=message do

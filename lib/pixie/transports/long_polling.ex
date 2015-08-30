@@ -44,6 +44,10 @@ defmodule Pixie.Transport.LongPolling do
     end
   end
 
+  def handle_call {:ensure_enqueue, messages}, state do
+    {:reply, :ok, enqueue_messages(messages, state)}
+  end
+
   def handle_cast {:enqueue, messages}, state do
     {:noreply, enqueue_messages(messages, state)}
   end

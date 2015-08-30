@@ -20,7 +20,15 @@ defmodule Pixie.Transport do
     GenServer.call transport, {:await, messages}, Pixie.timeout * 2
   end
 
+  def enqueue _transport, [] do
+    :ok
+  end
+
   def enqueue transport, messages do
     GenServer.cast transport, {:enqueue, messages}
+  end
+
+  def ensure_enqueue transport, messages do
+    GenServer.call transport, {:ensure_enqueue, messages}
   end
 end

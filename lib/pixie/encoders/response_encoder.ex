@@ -27,7 +27,7 @@ defmodule Pixie.Response.Encoder do
     if Pixie.Response.successful? response do
       Map.put response, :successful, true
     else
-      Map.merge response, successful: false, client_id: nil
+      Map.merge response, %{successful: false, client_id: nil}
     end
   end
 end

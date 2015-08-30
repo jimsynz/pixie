@@ -29,7 +29,7 @@ defmodule Pixie.Disconnect do
   end
 
   defp destroy_client %{message: %{client_id: c_id}, response: %{error: nil}}=event do
-    Task.async Backend, :destroy_client, [c_id]
+    Task.async Backend, :destroy_client, [c_id, "Client sent disconnect request."]
     event
   end
 
