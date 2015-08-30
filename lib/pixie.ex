@@ -2,6 +2,9 @@ defmodule Pixie do
   use Application
 
   @default_timeout 25_000 # 25 seconds.
+  # @default_transports ~w| long-polling cross-origin-long-polling callback-polling websocket eventsource |
+  @default_transports ~w| long-polling |
+  @bayeux_version "1.0"
 
   def start(_,_), do: start
   def start do
@@ -11,6 +14,10 @@ defmodule Pixie do
   def version do
     {:ok, version} = :application.get_key :pixie, :vsn
     to_string version
+  end
+
+  def bayeux_version do
+    @bayeux_version
   end
 
   def timeout do
@@ -39,5 +46,9 @@ defmodule Pixie do
 
   def configured_extensions do
     Application.get_env(:pixie, :extensions, [])
+  end
+
+  def enabled_transports do
+    Enum.into Application.get_env(:pixie, :enabled_transports, @default_transports), HashSet.new
   end
 end

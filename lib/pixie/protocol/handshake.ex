@@ -1,18 +1,13 @@
 defmodule Pixie.Handshake do
-  # Is there a way to use the one from Pixie.Bayeux?
-  @version "1.0"
   alias Pixie.Event
   alias Pixie.Protocol.Error
-  alias Pixie.Bayeux
   alias Pixie.Backend
   import Pixie.Utils.Map
 
-  def handle(%Event{message: %{version: v}, response: r}=event) when not is_nil(v) and v != @version do
-    %{event | response: Error.version_mismatch(r, v) }
-  end
-
-  def handle(%Event{message: %{supported_connection_types: %{__struct__: HashSet}=client_transports, version: @version, channel: "/meta/handshake"}, response: response}=event) do
-    server_transports = Bayeux.transports
+  # FIXME: I need a way to check this against Pixie.bayeux_version instead of
+  #        hard coding it here.
+  def handle(%Event{message: %{supported_connection_types: %{__struct__: HashSet}=client_transports, channel: "/meta/handshake", version: "1.0"}, response: response}=event) do
+    server_transports = Pixie.enabled_transports
     common_transports = Set.intersection client_transports, server_transports
 
     if Enum.empty? common_transports do
@@ -21,6 +16,10 @@ defmodule Pixie.Handshake do
       event = %{event | response: %{response | supported_connection_types: common_transports}}
       create_client Pixie.ExtensionRegistry.handle event
     end
+  end
+
+  def handle(%Event{message: %{version: v}, response: r}=event) when not is_nil(v) do
+    %{event | response: Error.version_mismatch(r, v) }
   end
 
   def handle(%Event{message: m, response: r}=event) do

@@ -29,7 +29,7 @@ defmodule Pixie.Connect do
 
   # Validate the connection type and respond.
   def handle(%{message: %{connection_type: connection_type}, client: client, response: %{advice: a}=r}=event) when is_pid(client) do
-    if Set.member? Pixie.Bayeux.transports, connection_type do
+    if Set.member? Pixie.enabled_transports, connection_type do
       transport = Pixie.Client.transport client, connection_type
       advice    = Pixie.Transport.advice transport, a
       Pixie.ExtensionRegistry.handle %{event | response: %{r | advice: advice}}
