@@ -1,4 +1,4 @@
-defmodule Pixie.Backend.Process do
+defmodule Pixie.Backend.ETS do
   use Pixie.Backend
   use GenServer
   require Logger
@@ -7,6 +7,9 @@ defmodule Pixie.Backend.Process do
   This is the default persistence backend for Pixie, which stores data in an
   ETS table, which means it will only persist as long as this process is
   running.
+
+  More information about ETS can be found
+  [in the Elixir ETS docs](http://elixir-lang.org/getting-started/mix-otp/ets.html).
   """
 
   def start_link options do

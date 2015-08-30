@@ -25,7 +25,7 @@ defmodule Pixie do
   end
 
   def backend_options do
-    Application.get_env(:pixie, :backend, [name: :Process])
+    Application.get_env(:pixie, :backend, [name: :ETS])
   end
 
   def subscribe_immediately? do

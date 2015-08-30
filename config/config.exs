@@ -24,4 +24,4 @@ use Mix.Config
 import_config "#{Mix.env}.exs"
 
 config :pixie, :backend,
-  name: :Process
+  name: :ETS
