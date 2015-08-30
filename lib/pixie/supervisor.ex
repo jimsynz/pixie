@@ -33,6 +33,7 @@ defmodule Pixie.Supervisor do
 
     children = [
       worker(Pixie.Timeouts, []),
+      worker(Pixie.ExtensionRegistry, [Pixie.configured_extensions]),
       worker(Pixie.Backend, [backend_name, backend_options])
     ]
 

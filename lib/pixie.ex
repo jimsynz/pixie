@@ -36,4 +36,8 @@ defmodule Pixie do
   def publish channel, %{}=data do
     publish %{channel: channel, data: data}
   end
+
+  def configured_extensions do
+    Application.get_env(:pixie, :extensions, [])
+  end
 end

@@ -1,5 +1,3 @@
-require Logger
-
 defmodule Pixie.Adapter.CowboyHttp do
   alias Pixie.Adapter.CowboyError, as: Error
 
@@ -47,14 +45,12 @@ defmodule Pixie.Adapter.CowboyHttp do
     case byte_size(body) do
       0 -> Error.not_acceptable req
       _ ->
-        Logger.debug "Would like to process post: #{body}"
         pixie_response req, Poison.decode!(body)
     end
   end
 
   defp process_post req, _is_json_request=false do
     {:ok, queries, req} = :cowboy_req.body_qs req
-    Logger.debug "Would like to process post #{queries}"
     pixie_response req, to_map(queries)
   end
 
@@ -65,7 +61,6 @@ defmodule Pixie.Adapter.CowboyHttp do
         Error.not_found req
       _ ->
         {queries, req} = :cowboy_req.qs_vals req
-        Logger.debug "Would like to process get #{queries}"
         pixie_response req, to_map(queries)
     end
   end
@@ -94,10 +89,8 @@ defmodule Pixie.Adapter.CowboyHttp do
   defp pixie_response req, message do
     json = case Pixie.Protocol.handle message do
       messages when is_list(messages) ->
-        Logger.debug "Sending 200: #{inspect messages}"
         Poison.encode! messages
       message when not is_nil(message) ->
-        Logger.debug "Sending 200: #{inspect message}"
         Posion.encode! [message]
       _ ->
         "[]"

@@ -32,7 +32,7 @@ defmodule Pixie.Connect do
     if Set.member? Pixie.Bayeux.transports, connection_type do
       transport = Pixie.Client.transport client, connection_type
       advice    = Pixie.Transport.advice transport, a
-      %{event | response: %{r | advice: advice}}
+      Pixie.ExtensionRegistry.handle %{event | response: %{r | advice: advice}}
     else
       %{event | response: Error.conntype_mismatch(r, [connection_type])}
     end

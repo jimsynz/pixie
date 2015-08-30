@@ -1,5 +1,3 @@
-require Logger
-
 defmodule Pixie.Backend.Process do
   use GenServer
   alias Pixie.Supervisor
@@ -149,7 +147,6 @@ defmodule Pixie.Backend.Process do
   end
 
   defp publish %{channel: channel_name}=message, possible_channels do
-    Logger.debug "Publishing #{inspect message}"
     # Reduce all subscribed clients to a single set so that
     # each client only receives the message once.
     receivers = Enum.reduce possible_channels, HashSet.new, fn(channel, acc)->

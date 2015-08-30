@@ -30,8 +30,16 @@ defmodule Pixie.Subscribe do
     end
   end
 
-  def handle(%{message: %{subscription: channel, client_id: client_id}}=event) do
+  def handle(event) do
+    subscribe Pixie.ExtensionRegistry.handle event
+  end
+
+  defp subscribe %{message: %{subscription: channel, client_id: client_id}, response: %{error: nil}}=event do
     Backend.subscribe client_id, channel
+    event
+  end
+
+  defp subscribe event do
     event
   end
 

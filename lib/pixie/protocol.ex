@@ -72,7 +72,7 @@ defmodule Pixie.Protocol do
   end
 
   defp via_transport events do
-    responses = Enum.map(events, fn %{response: r}-> r end)
+    responses = Enum.filter_map(events, fn %{response: r}-> r end, fn %{response: r}-> r end)
     case find_transport events do
       nil -> responses
       t   -> Pixie.Transport.await t, responses

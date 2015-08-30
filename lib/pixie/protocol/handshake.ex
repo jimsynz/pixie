@@ -18,8 +18,8 @@ defmodule Pixie.Handshake do
     if Enum.empty? common_transports do
       %{event | response: Error.conntype_mismatch(response, client_transports)}
     else
-      {client_id, client} = Backend.create_client
-      %{event | client: client, response: %{response | client_id: client_id, supported_connection_types: common_transports}}
+      event = %{event | response: %{response | supported_connection_types: common_transports}}
+      create_client Pixie.ExtensionRegistry.handle event
     end
   end
 
@@ -31,4 +31,14 @@ defmodule Pixie.Handshake do
 
     %{event | response: Error.parameter_missing(r, missing)}
   end
+
+  defp create_client %{response: %{error: nil}=response}=event do
+    {client_id, client} = Backend.create_client
+    %{event | client: client, response: %{response | client_id: client_id}}
+  end
+
+  defp create_client event do
+    event
+  end
+
 end

@@ -26,10 +26,16 @@ defmodule Pixie.Unsubscribe do
     end
   end
 
-  def handle(%{message: %{subscription: channel, client_id: client_id}}=event) do
+  def handle event do
+    unsubscribe Pixie.ExtensionRegistry.handle event
+  end
+
+  defp unsubscribe(%{message: %{subscription: channel, client_id: client_id}, response: %{error: nil}}=event) do
     Backend.unsubscribe client_id, channel
     event
   end
+
+  defp unsubscribe(event), do: event
 
   defp parameter_missing %{message: m, response: r}=event do
     missing = []

@@ -26,3 +26,4 @@ use Mix.Config
 config :pixie, :backend,
   name: :Process
 config :pixie, :subscribe_immediately, true
+config :pixie, :extensions, [Pixie.DebugExtension]

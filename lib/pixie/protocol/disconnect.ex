@@ -24,8 +24,16 @@ defmodule Pixie.Disconnect do
     end
   end
 
-  def handle(%{message: %{client_id: c_id}}=event) do
+  def handle event do
+    destroy_client Pixie.ExtensionRegistry.handle event
+  end
+
+  defp destroy_client %{message: %{client_id: c_id}, response: %{error: nil}}=event do
     Task.async Backend, :destroy_client, [c_id]
+    event
+  end
+
+  defp destroy_client event do
     event
   end
 

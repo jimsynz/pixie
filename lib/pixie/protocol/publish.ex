@@ -35,14 +35,22 @@ defmodule Pixie.Publish do
     end
   end
 
-  def handle(%{message: %{channel: channel}=message, client: client, response: r}=event) when not is_nil(client) do
+  def handle(%{message: %{channel: channel}, client: client, response: r}=event) when not is_nil(client) do
     if Pixie.Client.subscribed? client, channel do
-      Pixie.Backend.publish message
-      event
+      publish Pixie.ExtensionRegistry.handle event
     else
       %{event | response: Error.publish_failed(r, channel)}
     end
   end
+
+  defp publish(%{message: nil}=event), do: event
+
+  defp publish %{message: message, response: %{error: nil}}=event do
+    Pixie.Backend.publish message
+    event
+  end
+
+  defp publish(event), do: event
 
   # Return a parameter_missing error with a list of missing params.
   defp parameter_missing %{message: m, response: r}=event do
