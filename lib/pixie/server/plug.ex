@@ -1,5 +1,5 @@
-defmodule Pixie.Server.Router do
-  use Plug.Builder
+defmodule Pixie.Server.Plug do
+  use Plug.Router
 
   if Mix.env == :dev do
     use Plug.Debugger
@@ -7,16 +7,15 @@ defmodule Pixie.Server.Router do
 
   plug Plug.Logger
   plug :index
-  plug Plug.Static, at: "/", from: {:pixie, "priv"}, gzip: true
-  plug :not_found
+  plug :match
+  plug :dispatch
+
+  forward "/pixie", to: Pixie.Adapter.Plug
+  forward "/",      to: Plug.Static,        at: "/", from: {:pixie, "priv"}, gzip: true
 
   # Rewrite requests for "/" to "/index.html"
   def index %{path_info: []}=conn, _ do
     %{conn | path_info: ["index.html"]}
   end
   def index(conn, _), do: conn
-
-  def not_found conn, _ do
-    send_resp conn, 404, "Not found"
-  end
 end
