@@ -1,6 +1,6 @@
 require Logger
 
-defmodule Pixie.Adapter.CowboyError do
+defmodule Pixie.Adapter.Cowboy.Error do
 
   def not_found req do
     send_error req, 404, "Not Found"

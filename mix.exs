@@ -37,19 +37,20 @@ defmodule Pixie.Mixfile do
 
   def application do
     [
-      applications: [:logger, :cowboy],
+      applications: [:logger, :cowboy, :plug],
       mod: {Pixie, []}
     ]
   end
 
   defp deps do
     [
-      {:cowboy,        "~> 1.0.0"},
+      {:cowboy,        "~> 1.0.0", optional: true},
       {:poison,        "~> 1.4.0"},
       {:secure_random, "~> 0.1"},
       {:ex_minimatch,  "~> 0.0.1"},
       {:timex,         "~> 0.19.2"},
-      {:espec,         "~> 0.7.0", only: :test}
+      {:espec,         "~> 0.7.0", only: :test},
+      {:plug,          "~> 1.0.0"}
     ]
   end
 end
