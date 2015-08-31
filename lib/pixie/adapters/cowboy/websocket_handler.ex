@@ -1,6 +1,5 @@
-require Logger
-
-defmodule Pixie.Adapter.CowboyWebsocket do
+defmodule Pixie.Adapter.Cowboy.WebsocketHandler do
+  require Logger
   @behaviour :cowboy_websocket_handler
 
   def init _transport, req, opts do
@@ -20,28 +19,8 @@ defmodule Pixie.Adapter.CowboyWebsocket do
   end
 
   def websocket_handle {:text, data}, req, _state do
-    Logger.debug "websocket_handle :text, #{inspect(data)}"
-    json = case Pixie.Protocol.handle Poison.decode!(data) do
-      [] ->
-        nil
-      events when is_list(events) ->
-        events
-          |> Enum.map(fn
-            %{response: r}-> r
-          end)
-          |> Poison.encode!
-      %{response: r} when not is_nil(r)->
-        Poison.encode! [r]
-      _ ->
-        nil
-    end
-
-    if json do
-      Logger.debug "sending frame #{inspect json}"
-      {:reply, {:text, json}, req, nil}
-    else
-      {:ok, req, nil}
-    end
+    Logger.debug "Incoming text frame: #{inspect data}"
+    {:ok, req, nil}
   end
 
   def websocket_handle frame, req, state do

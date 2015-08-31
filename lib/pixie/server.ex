@@ -10,7 +10,7 @@ defmodule Pixie.Server do
     :cowboy_router.compile([
       {
         :_, [
-          {:_, Plug.Adapters.Cowboy.Handler, {Pixie.Server.Plug, []}}
+          {:_, Pixie.Adapter.Cowboy.HttpHandler, {Pixie.Server.Plug, []}}
         ]
       }
     ])
