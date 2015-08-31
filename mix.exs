@@ -44,7 +44,7 @@ defmodule Pixie.Mixfile do
 
   defp deps do
     [
-      {:cowboy,        "~> 1.0.0", optional: true},
+      {:cowboy,        "~> 1.0.2", optional: true},
       {:poison,        "~> 1.4.0"},
       {:secure_random, "~> 0.1"},
       {:ex_minimatch,  "~> 0.0.1"},

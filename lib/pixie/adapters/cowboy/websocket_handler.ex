@@ -18,17 +18,36 @@ defmodule Pixie.Adapter.Cowboy.WebsocketHandler do
     {:ok, req, state}
   end
 
-  def websocket_handle {:text, data}, req, _state do
-    Logger.debug "Incoming text frame: #{inspect data}"
-    {:ok, req, nil}
+  def websocket_handle {:text, data}, req, state do
+    data = Poison.decode! data
+    case Pixie.Protocol.handle data do
+      :ok ->
+        {:ok, req, state}
+      [] ->
+        {:ok, req, state}
+      responses when is_list(responses) ->
+        {:reply, {:text, Poison.encode!(responses)}, req, state}
+      unknown ->
+        Logger.debug "Unknown response from Protocol: #{inspect unknown}"
+        Logger.debug "closing socket."
+        {:shutdown, req, state}
+    end
   end
 
   def websocket_handle frame, req, state do
     :cowboy_websocket.handle frame, req, state
   end
 
+  def websocket_info {:deliver, messages}, req, state do
+    frame = Poison.encode! messages
+    {:reply, {:text, frame}, req, state}
+  end
+
+  def websocket_info :close, req, state do
+    {:shutdown, req, state}
+  end
+
   def websocket_info msg, req, state do
-    IO.inspect msg
     {:ok, req, state}
   end
 

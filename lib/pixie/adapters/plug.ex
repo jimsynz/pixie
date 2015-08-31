@@ -49,8 +49,6 @@ defmodule Pixie.Adapter.Plug do
 
     if Regex.match? @valid_jsonp_callback, jsonp do
       json  = Poison.decode! json
-      IO.inspect "Received JSON: #{inspect json}"
-      IO.inspect "JSONP callback: #{inspect jsonp}"
       conn = case get_req_header(conn, "origin") do
         [value] -> put_resp_header conn, "access-control-allow-origin", value
         [] -> conn

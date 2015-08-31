@@ -49,6 +49,9 @@ following message types:
 over the following transports:
 
   - Long polling
+  - Cross-origin long polling
+  - Callback polling (JSON-P)
+  - Websocket
 
 ## Usage
 
