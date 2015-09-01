@@ -17,14 +17,14 @@ defmodule Pixie.Adapter.Plug do
   plug :handle
 
   def handle %{method: "OPTIONS"}=conn, _ do
-    handle_options conn
+    halt handle_options conn
   end
 
   def handle conn, _ do
     if get_req_header(conn, "access-control-request-method") == ["POST"] do
-      handle_options conn
+      halt handle_options conn
     else
-      handle_request fetch_query_params(conn)
+      halt handle_request fetch_query_params(conn)
     end
   end
 

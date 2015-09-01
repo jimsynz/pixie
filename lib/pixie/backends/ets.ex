@@ -64,6 +64,14 @@ defmodule Pixie.Backend.ETS do
     end
   end
 
+  def subscribed_to client_id do
+    client_subs_key = "client_subscriptions:#{client_id}"
+    case :ets.lookup __MODULE__, client_subs_key do
+      [{^client_subs_key,subs}] -> subs
+      _ -> []
+    end
+  end
+
   def subscribers_of channel_pattern do
     case :ets.lookup __MODULE__, "all_channels" do
       [{"all_channels", channels}] ->
@@ -131,10 +139,16 @@ defmodule Pixie.Backend.ETS do
 
   def handle_call {:destroy_client, client_id, reason}, _from, table do
     client_key = "client:#{client_id}"
-    Pixie.Supervisor.terminate_worker client_key
     delete_from_set "all_clients", client_id
     :ets.delete __MODULE__, client_key
+    subs = subscribed_to client_id
+    Enum.each subs, fn(channel)->
+      do_unsubscribe client_id, channel
+    end
+    Logger.debug "[#{client_id}]: Unsubscribed from #{Enum.count subs} channels"
     Logger.info "[#{client_id}]: Client destroyed: #{reason}"
+    Pixie.Supervisor.terminate_worker client_key
+    Pixie.Supervisor.terminate_worker "transport:#{client_id}"
     {:reply, :ok, table}
   end
 
@@ -149,11 +163,7 @@ defmodule Pixie.Backend.ETS do
   end
 
   def handle_call {:unsubscribe, client_id, channel_name}, _from, table do
-    delete_from_set "client_subscriptions:#{client_id}", channel_name
-    case delete_from_set "channel_subscriptions:#{channel_name}", client_id do
-      0 -> destroy_channel channel_name
-      _ -> nil
-    end
+    do_unsubscribe client_id, channel_name
     Logger.info "[#{client_id}]: Unsubscribed #{channel_name}"
     {:reply, :ok, table}
   end
@@ -193,6 +203,14 @@ defmodule Pixie.Backend.ETS do
   defp destroy_channel channel_name do
     delete_from_set "all_channels", channel_name
     :ets.delete __MODULE__, "channel_matcher:#{channel_name}"
+  end
+
+  defp do_unsubscribe client_id, channel_name do
+    delete_from_set "client_subscriptions:#{client_id}", channel_name
+    case delete_from_set "channel_subscriptions:#{channel_name}", client_id do
+      0 -> destroy_channel channel_name
+      _ -> nil
+    end
   end
 
   defp compiled_matcher_for channel_name do

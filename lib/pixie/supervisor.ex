@@ -1,4 +1,5 @@
 defmodule Pixie.Supervisor do
+  require Logger
   use Supervisor
 
   def start_link do
@@ -6,7 +7,7 @@ defmodule Pixie.Supervisor do
   end
 
   def add_worker module, id, args do
-    case Supervisor.start_child __MODULE__, worker_spec(module, id, args) do
+    case Supervisor.start_child __MODULE__, worker(module, args, id: id, restart: :transient) do
       {:ok, pid} ->
         {:ok, pid}
       {:error, {:already_started, pid}} ->
@@ -43,9 +44,5 @@ defmodule Pixie.Supervisor do
     end
 
     supervise(children, strategy: :one_for_one)
-  end
-
-  defp worker_spec module, id, args do
-    {id, {module, :start_link, args}, :transient, 5000, :worker, [module]}
   end
 end

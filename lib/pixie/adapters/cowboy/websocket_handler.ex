@@ -1,6 +1,7 @@
 defmodule Pixie.Adapter.Cowboy.WebsocketHandler do
   require Logger
   @behaviour :cowboy_websocket_handler
+  @max_messages_per_frame 64
 
   def init _transport, req, opts do
     init req, opts
@@ -26,7 +27,9 @@ defmodule Pixie.Adapter.Cowboy.WebsocketHandler do
       [] ->
         {:ok, req, state}
       responses when is_list(responses) ->
-        {:reply, {:text, Poison.encode!(responses)}, req, state}
+        {first, rest} = Enum.split(responses, @max_messages_per_frame)
+        send self, {:deliver, rest}
+        {:reply, {:text, Poison.encode!(first)}, req, state}
       unknown ->
         Logger.debug "Unknown response from Protocol: #{inspect unknown}"
         Logger.debug "closing socket."
@@ -38,16 +41,21 @@ defmodule Pixie.Adapter.Cowboy.WebsocketHandler do
     :cowboy_websocket.handle frame, req, state
   end
 
+  def websocket_info {:deliver, []}, req, state do
+    {:ok, req, state}
+  end
+
   def websocket_info {:deliver, messages}, req, state do
-    frame = Poison.encode! messages
-    {:reply, {:text, frame}, req, state}
+    {first, rest} = Enum.split(messages, @max_messages_per_frame)
+    send self, {:deliver, rest}
+    {:reply, {:text, Poison.encode!(first)}, req, state}
   end
 
   def websocket_info :close, req, state do
     {:shutdown, req, state}
   end
 
-  def websocket_info msg, req, state do
+  def websocket_info _msg, req, state do
     {:ok, req, state}
   end
 

@@ -10,11 +10,19 @@ defmodule Pixie.Transport.Stream do
       end
 
       def init [] do
+        Process.flag :trap_exit, true
         {:ok, {nil, []}}
       end
 
-      def terminate _, state do
-        dequeue_messages state
+      def terminate _, {nil, state} do
+        :ok
+      end
+
+      def terminate _, {from, state} do
+        if Process.alive? from do
+          dequeue_messages state
+          send from, :close
+        end
         :ok
       end
 
@@ -31,6 +39,7 @@ defmodule Pixie.Transport.Stream do
       # an adapter process waiting for it.
       def handle_call {:connect, messages}, from, {nil, queued_messages} do
         from = sanitize_from from
+        Process.link(from)
         case enqueue_messages(messages, {from, queued_messages}) do
           {nil, _}=state ->
             {:reply, :ok, state}
@@ -45,7 +54,9 @@ defmodule Pixie.Transport.Stream do
       # enqueuing logic.
       def handle_call({:connect, messages}, from, {old, queued_messages}) when from != old do
         from = sanitize_from from
+        Process.link(from)
         if old != from do
+          Process.unlink(old)
           send old, :close
         end
         case enqueue_messages(messages, {from, queued_messages}) do

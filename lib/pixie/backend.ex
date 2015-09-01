@@ -1,6 +1,7 @@
 defmodule Pixie.Backend do
   use Behaviour
   @default_id_length 32
+  @max_messages_per_publish 256
 
   @moduledoc """
   Used to implement the persistence backend for Pixie.
@@ -57,12 +58,17 @@ defmodule Pixie.Backend do
   @doc """
   Unsubscribe a client from a channel
   """
-  defcallback unsubscribe(client_id :: String.t, channel_name :: String.t) :: atom
+  defcallback unsubscribe(client_id :: String.t, channel_name :: String.t | [String.t]) :: atom
 
   @doc """
   Retrieve the unique subscribers of channels matching the channel pattern.
   """
   defcallback subscribers_of(channel_pattern :: String.t) :: [pid]
+
+  @doc """
+  Retrieve the channels that the client is subscribed to.
+  """
+  defcallback subscribed_to(client_id :: String.t) :: [String.t]
 
   @doc """
   Check whether the client is subscribed to the mentioned channel.
@@ -99,6 +105,7 @@ defmodule Pixie.Backend do
   def subscribe(client_id, channel_name), do: apply_to_backend(:subscribe, [client_id, channel_name])
   def unsubscribe(client_id, channel_name), do: apply_to_backend(:unsubscribe, [client_id, channel_name])
   def subscribers_of(channel_name), do: apply_to_backend(:subscribers_of, [channel_name])
+  def subscribed_to(client_id), do: apply_to_backend(:subscribed_to, [client_id])
   def client_subscribed?(client_id, channel_name), do: apply_to_backend(:client_subscribed?, [client_id, channel_name])
   def queue_for(client_id, messages), do: apply_to_backend(:queue_for, [client_id, messages])
   def dequeue_for(client_id), do: apply_to_backend(:dequeue_for, [client_id])
@@ -106,17 +113,24 @@ defmodule Pixie.Backend do
   @doc """
   Publishes a collection of messages to all their receiving clients.
   """
+  def publish([]), do: :ok
   def publish(messages) when is_list(messages) do
-    # We pre sort messages into queues per client, which potentially uses
-    # lots of RAM but means that we can dequeue all the messages for each
-    # client to the transport simultaneously.  This reduces message latency,
-    # expecially for those clients connected via polling transports.
+    # First we take `@max_messages_per_publish` messages.
+    {messages, rest} = Enum.split(messages, @max_messages_per_publish)
+
+    # Then explode them by channel and group them by client
+    # So that we can deliver as many messages as possible per
+    # each `Pixie.Client.deliver` call.
     Enum.each messages_by_client_id(messages), fn
       ({client_id, messages})->
         client   = get_client client_id
         messages = Enum.reverse(messages)
         Pixie.Client.deliver client, messages
     end
+
+    # Then we publish the rest, if any.
+    publish rest
+    :ok
   end
 
   def publish(message), do: publish([message])
