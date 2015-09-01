@@ -10,7 +10,7 @@ defmodule Pixie.Backend do
   defmacro __using__(_opts) do
     quote do
       @behaviour Pixie.Backend
-      import Pixie.Backend.Utils
+      import Pixie.Utils.Backend
       @default_id_length 32
 
       def generate_namespace, do: generate_namespace(@default_id_length)
