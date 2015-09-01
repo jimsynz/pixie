@@ -27,7 +27,10 @@ defmodule PixieConnectSpec do
 
     let :valid_message, do: %{channel: "/meta/connect", connection_type: "long-polling", client_id: client_id}
 
-    finally do: Pixie.Backend.destroy_client client_id
+    before do
+      {:ok, pid} = Pixie.Backend.start_link :ETS, []
+      {:ok, pid: pid}
+    end
 
     describe "When passed a message with no client_id" do
       let :message, do: %{valid_message | client_id: nil}

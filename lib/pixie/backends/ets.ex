@@ -19,6 +19,7 @@ defmodule Pixie.Backend.ETS do
   def init _options do
     table = :ets.new __MODULE__, [:set, :protected, :named_table, read_concurrency: true]
     :ets.insert table, default_state
+    Process.flag :trap_exit, true
     {:ok, table}
   end
 
@@ -128,27 +129,12 @@ defmodule Pixie.Backend.ETS do
   end
 
   def handle_call :create_client, _from, table do
-    client_id  = generate_unique_namespace @default_id_length
-    client_key = "client:#{client_id}"
-    {:ok, client} = Pixie.Supervisor.add_worker Pixie.Client, client_key, [client_id]
-    :ets.insert __MODULE__, [{client_key, client}]
-    add_to_set "all_clients", client_id
-    Logger.info "[#{client_id}]: Client created."
+    {client_id, client} = do_create_client
     {:reply, {client_id, client}, table}
   end
 
   def handle_call {:destroy_client, client_id, reason}, _from, table do
-    client_key = "client:#{client_id}"
-    delete_from_set "all_clients", client_id
-    :ets.delete __MODULE__, client_key
-    subs = subscribed_to client_id
-    Enum.each subs, fn(channel)->
-      do_unsubscribe client_id, channel
-    end
-    Logger.debug "[#{client_id}]: Unsubscribed from #{Enum.count subs} channels"
-    Logger.info "[#{client_id}]: Client destroyed: #{reason}"
-    Pixie.Supervisor.terminate_worker client_key
-    Pixie.Supervisor.terminate_worker "transport:#{client_id}"
+    do_destroy_client client_id, reason
     {:reply, :ok, table}
   end
 
@@ -192,7 +178,38 @@ defmodule Pixie.Backend.ETS do
       _ -> nil
     end
 
-    {:reply, :ok, table}
+    {:noreply, table}
+  end
+
+  def terminate _reason, _table do
+    Enum.each get_set("all_clients"), fn(client_id) ->
+      do_destroy_client client_id, "Backend exiting"
+    end
+    :ok
+  end
+
+  def do_create_client do
+    client_id  = generate_unique_namespace @default_id_length
+    client_key = "client:#{client_id}"
+    {:ok, client} = Pixie.Supervisor.add_worker Pixie.Client, client_key, [client_id]
+    :ets.insert __MODULE__, [{client_key, client}]
+    add_to_set "all_clients", client_id
+    Logger.info "[#{client_id}]: Client created."
+    {client_id, client}
+  end
+
+  def do_destroy_client client_id, reason do
+    client_key = "client:#{client_id}"
+    delete_from_set "all_clients", client_id
+    :ets.delete __MODULE__, client_key
+    subs = subscribed_to client_id
+    Enum.each subs, fn(channel)->
+      do_unsubscribe client_id, channel
+    end
+    Logger.debug "[#{client_id}]: Unsubscribed from #{Enum.count subs} channels"
+    Logger.info "[#{client_id}]: Client destroyed: #{reason}"
+    Pixie.Supervisor.terminate_worker client_key
+    Pixie.Supervisor.terminate_worker "transport:#{client_id}"
   end
 
   def create_channel channel_name do

@@ -89,7 +89,9 @@ defmodule Pixie.Backend do
     module = Module.concat [:Pixie, :Backend, name]
     :ets.new __MODULE__, [:set, :protected, :named_table, read_concurrency: true]
     :ets.insert __MODULE__, [configured_backend: module]
-    apply(module, :start_link, [options])
+    {:ok, pid} = apply(module, :start_link, [options])
+    :ets.give_away __MODULE__, pid, nil
+    {:ok, pid}
   end
 
   # FIXME

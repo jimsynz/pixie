@@ -43,6 +43,10 @@ defmodule Pixie.Supervisor do
       false -> children
     end
 
+    if Mix.env == :test do
+      children = [worker(Pixie.ExtensionRegistry, [Pixie.configured_extensions])]
+    end
+
     supervise(children, strategy: :one_for_one)
   end
 end
