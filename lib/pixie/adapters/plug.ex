@@ -4,11 +4,12 @@ defmodule Pixie.Adapter.Plug do
   require Logger
 
   @valid_jsonp_callback ~r|^[a-z_\$][a-z0-9_\$]*(\.[a-z_\$][a-z0-9_\$]*)*$|i
+  @default_retry 5000
 
-  if Mix.env == :dev do
-    use Plug.Debugger
-  end
-  plug Plug.Logger
+  # if Mix.env == :dev do
+  #   use Plug.Debugger
+  # end
+  # plug Plug.Logger
   plug Plug.Parsers,
     parsers:      [:urlencoded, :json, :multipart],
     pass:         ["text/*", "application/json"],
@@ -72,6 +73,32 @@ defmodule Pixie.Adapter.Plug do
     else
       Logger.error "Invalid JSONP callback: #{inspect jsonp}"
       bad_request conn
+    end
+  end
+
+  defp handle_request(%{method: "GET", path_info: path_info}=conn) when is_list(path_info) and length(path_info) > 0 do
+    if Enum.member? get_req_header(conn, "accept"), "text/event-stream" do
+      # Eventsource...
+      Logger.debug "EventSource: #{inspect conn}"
+      client_id = List.last(path_info)
+      case Pixie.Backend.get_client client_id do
+        nil ->
+          not_found conn
+        client ->
+          conn = put_resp_content_type conn, "text/event-stream"
+          conn = merge_resp_headers conn, %{
+            "cache-control" => "no-cache, no-store",
+            # "connection"    => "close"
+          }
+          conn = send_chunked conn, 200
+          {:ok, conn} = chunk conn, "\r\nretry: #{Pixie.timeout}\r\n\r\n"
+          Logger.debug "[#{client_id}]: Opened EventSource connection."
+
+          transport = Pixie.Client.set_transport client, "eventsource"
+          Pixie.Transport.connect transport, [], conn: conn
+      end
+    else
+      not_found conn
     end
   end
 

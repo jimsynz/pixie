@@ -10,7 +10,7 @@ defmodule Pixie.Transport.Stream do
       end
 
       def init [] do
-        {:ok, {nil, []}}
+        {:ok, {nil, [], []}}
       end
 
       def terminate _, state do
@@ -27,32 +27,16 @@ defmodule Pixie.Transport.Stream do
         advice
       end
 
-      # Await messages to send back to the adapter, unless there's already
-      # an adapter process waiting for it.
-      def handle_call {:connect, messages}, from, {nil, queued_messages} do
+      def handle_call({:connect, messages, opts}, from, {old, queued_messages, old_opts}) when from != old do
         from = sanitize_from from
-        case enqueue_messages(messages, {from, queued_messages}) do
-          {nil, _}=state ->
-            {:reply, :ok, state}
-          state ->
-            {:reply, :ok, state, Pixie.timeout}
+        if should_close? {from, opts}, {old, old_opts} do
+          close old, opts
         end
-      end
-
-      # If a second adapter connects while we're still waiting for an old one
-      # to timeout it will kill the timeout, so we send an empty reply to the
-      # old adapter to get it to close it's connection then we run the usual
-      # enqueuing logic.
-      def handle_call({:connect, messages}, from, {old, queued_messages}) when from != old do
-        from = sanitize_from from
-        if old != from do
-          send old, :close
-        end
-        case enqueue_messages(messages, {from, queued_messages}) do
-          {nil, _}=state ->
-            {:reply, :ok, state}
+        case enqueue_messages(messages, {from, queued_messages, opts}) do
+          {nil, _, _}=state ->
+            {:reply, connect_reply(state), state}
           state ->
-            {:reply, :ok, state, Pixie.timeout}
+            {:reply, connect_reply(state), state, Pixie.timeout}
         end
       end
 
@@ -68,26 +52,25 @@ defmodule Pixie.Transport.Stream do
         {:noreply, dequeue_messages state}
       end
 
-      def enqueue_messages messages, {nil, queued_messages} do
-        {nil, queued_messages ++ messages}
+      def enqueue_messages messages, {nil, queued_messages, opts} do
+        {nil, queued_messages ++ messages, opts}
       end
 
-      def enqueue_messages messages, {waiting_adapter, queued_messages} do
+      def enqueue_messages messages, {waiting_adapter, queued_messages, opts} do
         messages = queued_messages ++ messages
         if Pixie.Protocol.respond_immediately? messages do
-          dequeue_messages {waiting_adapter, messages}
+          dequeue_messages {waiting_adapter, messages, opts}
         else
-          {waiting_adapter, messages}
+          {waiting_adapter, messages, opts}
         end
       end
 
-      def dequeue_messages {nil, queued_messages} do
-        {nil, queued_messages}
+      def dequeue_messages {nil, queued_messages, opts} do
+        {nil, queued_messages, opts}
       end
 
-      def dequeue_messages {waiting_adapter, queued_messages} do
-        send waiting_adapter, {:deliver, queued_messages}
-        {nil, []}
+      def dequeue_messages state do
+        deliver state
       end
 
       defp sanitize_from from do
@@ -100,11 +83,16 @@ defmodule Pixie.Transport.Stream do
         end
       end
 
+      def should_close? {new, _new_opts}, {old, _old_opts} do
+        new != old
+      end
+
       defoverridable [
         start_link: 0,
         update_advice: 1,
         enqueue_messages: 2,
-        dequeue_messages: 1
+        dequeue_messages: 1,
+        should_close?: 2
       ]
     end
   end
@@ -112,7 +100,15 @@ defmodule Pixie.Transport.Stream do
   @doc false
   defcallback start_link() :: {atom, pid}
 
-  defcallback enqueue_messages(messages :: [map], {from :: pid | nil, queued_messages :: [map]}) :: {nil | pid, list}
+  defcallback enqueue_messages(messages :: [map], {from :: pid | nil, queued_messages :: [map], opts :: list}) :: {nil | pid, list, list}
 
-  defcallback dequeue_messages({waiting :: pid | nil, queued_messages :: [map]}) :: {nil, list}
+  defcallback dequeue_messages({waiting :: pid | nil, queued_messages :: [map], opts :: list :: {nil, list, list}}) :: {nil | pid, list, list}
+
+  defcallback close(adapter :: pid, opts :: list) :: atom
+
+  defcallback deliver({waiting :: pid | nil, queued_messages :: [map], opts :: list}) :: {pid, list, list}
+
+  defcallback should_close?({new_pid :: pid, new_opts :: []}, {old_pid :: pid, old_opts :: []}) :: atom
+
+  defcallback connect_reply({pid :: pid, queued_messages :: [map], opts :: list}) :: any
 end

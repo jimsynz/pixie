@@ -29,7 +29,7 @@ defmodule Pixie.Transport.Default do
 
       # Await messages to send back to the adapter, unless there's already
       # an adapter process waiting for it.
-      def handle_call {:connect, messages}, from, {nil, queued_messages} do
+      def handle_call {:connect, messages, _opts}, from, {nil, queued_messages} do
         case enqueue_messages(messages, {from, queued_messages}) do
           {nil, _}=state ->
             {:noreply, state}
@@ -42,7 +42,7 @@ defmodule Pixie.Transport.Default do
       # to timeout it will kill the timeout, so we send an empty reply to the
       # old adapter to get it to close it's connection then we run the usual
       # enqueuing logic.
-      def handle_call {:connect, messages}, from, {old, queued_messages} do
+      def handle_call {:connect, messages, _opts}, from, {old, queued_messages} do
         GenServer.reply old, []
         case enqueue_messages(messages, {from, queued_messages}) do
           {nil, _}=state ->

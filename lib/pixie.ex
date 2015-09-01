@@ -3,7 +3,7 @@ defmodule Pixie do
 
   @default_timeout 25_000 # 25 seconds.
   # @default_transports ~w| long-polling cross-origin-long-polling callback-polling websocket eventsource |
-  @default_transports ~w| long-polling cross-origin-long-polling callback-polling websocket |
+  @default_transports ~w| long-polling cross-origin-long-polling callback-polling eventsource |
   @bayeux_version "1.0"
 
   def start(_,_), do: start

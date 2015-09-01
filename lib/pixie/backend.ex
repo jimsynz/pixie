@@ -42,7 +42,7 @@ defmodule Pixie.Backend do
   @doc """
   Retrieve the process of a client by it's ID.
   """
-  defcallback get_client(client_id :: String.t) :: pid
+  defcallback get_client(client_id :: String.t) :: pid | nil
 
   @doc """
   Destroy a client.
