@@ -8,7 +8,6 @@ defmodule Pixie.Adapter.Plug do
   if Mix.env == :dev do
     use Plug.Debugger
   end
-  plug Plug.Logger
   plug Plug.Parsers,
     parsers:      [:urlencoded, :json, :multipart],
     pass:         ["text/*", "application/json"],

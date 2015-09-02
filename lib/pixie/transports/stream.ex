@@ -79,6 +79,10 @@ defmodule Pixie.Transport.Stream do
         {:noreply, dequeue_messages state}
       end
 
+      def handle_info {:EXIT, _pid, _reason}, state do
+        {:noreply, state}
+      end
+
       def enqueue_messages messages, {nil, queued_messages} do
         {nil, queued_messages ++ messages}
       end

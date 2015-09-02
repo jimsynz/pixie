@@ -4,9 +4,9 @@ defmodule Pixie.Server.Plug do
 
   if Mix.env == :dev do
     use Plug.Debugger
+    plug Plug.Logger
   end
 
-  plug Plug.Logger
   plug :index
   plug :match
   plug :dispatch

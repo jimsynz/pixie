@@ -87,7 +87,12 @@ defmodule Pixie.Client do
   end
 
   def handle_info :timeout, %{id: id}=state do
-    Task.async Pixie.Backend, :destroy_client, [id, "Idle timeout."]
+    # Task.async Pixie.Backend, :destroy_client, [id, "Idle timeout."]
+    Pixie.Backend.destroy_client id, "Idle timeout."
+    {:noreply, state}
+  end
+
+  def handle_info {:EXIT, _pid, _reason}, state do
     {:noreply, state}
   end
 

@@ -78,6 +78,11 @@ defmodule PixieBackendExamples do
 
       it "subscribes a client to a channel" do
         apply(backend, :subscribe, [client_id, "/foo"])
+        # FIXME
+        # using a delay here is awful, but `subscribe` is async, so I'm not
+        # exactly sure how to do it, unless I make it sync and have the backend
+        # return a task instead.
+        :timer.sleep 10
         expect(apply(backend, :subscribers_of, ["/foo"])).to have(client_id)
         expect(apply(backend, :subscribed_to, [client_id])).to have("/foo")
         expect(apply(backend, :client_subscribed?, [client_id, "/foo"])).to be_true

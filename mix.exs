@@ -50,6 +50,7 @@ defmodule Pixie.Mixfile do
       {:ex_minimatch,  "~> 0.0.1"},
       {:timex,         "~> 0.19.2"},
       {:espec,         "~> 0.7.0", only: :test},
+      {:exprof,        "~> 0.2.0"}, #, only: :dev},
       {:plug,          "~> 1.0.0"}
     ]
   end
