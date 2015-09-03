@@ -1,4 +1,4 @@
-defmodule Pixie.Backend.Utils do
+defmodule Pixie.Utils.Backend do
   require ExMinimatch
 
   def compile_channel_matcher channel_name do

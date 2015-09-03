@@ -20,6 +20,11 @@ defmodule PixieHandshakeSpec do
       client
     end
 
+    before do
+      {:ok, pid} = Pixie.Backend.start_link :ETS, []
+      {:ok, pid: pid}
+    end
+
     context "When passed a message with an incorrect version" do
       let :message, do: %{version: "42"}
 

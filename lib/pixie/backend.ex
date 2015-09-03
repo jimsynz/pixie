@@ -10,7 +10,7 @@ defmodule Pixie.Backend do
   defmacro __using__(_opts) do
     quote do
       @behaviour Pixie.Backend
-      import Pixie.Backend.Utils
+      import Pixie.Utils.Backend
       @default_id_length 32
 
       def generate_namespace, do: generate_namespace(@default_id_length)
@@ -87,8 +87,6 @@ defmodule Pixie.Backend do
 
   def start_link name, options do
     module = Module.concat [:Pixie, :Backend, name]
-    :ets.new __MODULE__, [:set, :protected, :named_table, read_concurrency: true]
-    :ets.insert __MODULE__, [configured_backend: module]
     apply(module, :start_link, [options])
   end
 
@@ -135,11 +133,10 @@ defmodule Pixie.Backend do
 
   def publish(message), do: publish([message])
 
-  defp apply_to_backend(func, args) when is_list(args) do
-    case :ets.lookup __MODULE__, :configured_backend do
-      [{:configured_backend, module}] ->
-        apply(module, func, args)
-    end
+  defp apply_to_backend(fun, args) when is_list(args) do
+    name = Keyword.get Pixie.backend_options, :name
+    mod  = Module.concat [Pixie.Backend, name]
+    apply(mod, fun, args)
   end
 
   # Cache the subscription lists for each channel we're delivering to

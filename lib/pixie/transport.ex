@@ -2,14 +2,13 @@ defmodule Pixie.Transport do
   import Pixie.Utils.String
 
   def get transport_name, client_id do
-    id = "transport:#{client_id}"
     transport_name = transport_name
       |> String.split("-")
       |> Enum.join("_")
       |> camelize(true)
 
     module = Module.concat __MODULE__, transport_name
-    Pixie.Supervisor.replace_worker module, id, []
+    Pixie.TransportSupervisor.replace_worker module, client_id, []
   end
 
   def advice transport, advice do
