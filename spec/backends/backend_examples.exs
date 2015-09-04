@@ -4,8 +4,17 @@ defmodule PixieBackendExamples do
   let :backend, do: __.backend
 
   before do
+    config = Application.get_env(:pixie, :backend)
+    new_config = [
+      name: Module.split(__.backend) |> List.last
+    ]
+    Application.put_env(:pixie, :backend, new_config)
     {:ok, pid} = apply(__.backend, :start_link, [[]])
-    {:ok, pid: pid}
+    {:ok, pid: pid, old_config: config}
+  end
+
+  finally do
+    Application.put_env(:pixie, :backend, __.old_config)
   end
 
   describe "start_link" do

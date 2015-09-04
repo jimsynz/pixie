@@ -21,6 +21,9 @@ defmodule Pixie.Server do
   end
 
   defp port do
-    System.get_env("PORT") || 4000
+    case System.get_env("PORT") do
+      nil -> 4000
+      i   -> String.to_integer(i)
+    end
   end
 end

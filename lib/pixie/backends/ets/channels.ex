@@ -3,9 +3,7 @@ defmodule Pixie.Backend.ETS.Channels do
   use GenServer
   import Pixie.Utils.Backend
 
-  @moduledoc """
-  This process manages the generation and removal of client processes.
-  """
+  @moduledoc false
 
   def start_link do
     GenServer.start_link __MODULE__, [], name: __MODULE__
@@ -26,6 +24,13 @@ defmodule Pixie.Backend.ETS.Channels do
 
   def destroy channel_name do
     GenServer.cast __MODULE__, {:destroy, channel_name}
+  end
+
+  def exists? channel_name do
+    case :ets.lookup __MODULE__, channel_name do
+      [{^channel_name, _}] -> true
+      []                   -> false
+    end
   end
 
   def get channel_name do

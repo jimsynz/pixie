@@ -21,8 +21,15 @@ defmodule PixieHandshakeSpec do
     end
 
     before do
+      old_config = Pixie.backend_options
+      Application.put_env :pixie, :backend, [name: :ETS]
       {:ok, pid} = Pixie.Backend.start_link :ETS, []
-      {:ok, pid: pid}
+      {:ok, pid: pid, old_config: old_config}
+    end
+
+    finally do
+      Application.put_env :pixie, :backend, __.old_config
+      Process.exit(__.pid, :normal)
     end
 
     context "When passed a message with an incorrect version" do

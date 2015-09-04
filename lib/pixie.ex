@@ -4,6 +4,7 @@ defmodule Pixie do
   @default_timeout 25_000 # 25 seconds.
   # @default_transports ~w| long-polling cross-origin-long-polling callback-polling websocket eventsource |
   @default_transports ~w| long-polling cross-origin-long-polling callback-polling websocket |
+  @default_backend [name: :ETS]
   @bayeux_version "1.0"
 
   def start(_,_), do: start
@@ -25,6 +26,11 @@ defmodule Pixie do
   end
 
   def backend_options do
+    case Application.get_env(:pixie, :backend) do
+      []                      -> @default_backend
+      opts when is_list(opts) -> opts
+      _                       -> @default_backend
+    end
     Application.get_env(:pixie, :backend, [name: :ETS])
   end
 

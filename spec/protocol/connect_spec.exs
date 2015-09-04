@@ -28,8 +28,15 @@ defmodule PixieConnectSpec do
     let :valid_message, do: %{channel: "/meta/connect", connection_type: "long-polling", client_id: client_id}
 
     before do
+      old_config = Pixie.backend_options
+      Application.put_env :pixie, :backend, [name: :ETS]
       {:ok, pid} = Pixie.Backend.start_link :ETS, []
-      {:ok, pid: pid}
+      {:ok, pid: pid, old_config: old_config}
+    end
+
+    finally do
+      Application.put_env :pixie, :backend, __.old_config
+      Process.exit(__.pid, :normal)
     end
 
     describe "When passed a message with no client_id" do
