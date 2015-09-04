@@ -31,7 +31,6 @@ defmodule Pixie do
       opts when is_list(opts) -> opts
       _                       -> @default_backend
     end
-    Application.get_env(:pixie, :backend, [name: :ETS])
   end
 
   def subscribe_immediately? do
