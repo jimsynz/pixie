@@ -5,16 +5,24 @@ defmodule Pixie.Backend.Redis do
   require Logger
 
   @default_id_length 32
+  @pool_size 5
+  @default_redis_url "redis://localhost:6379"
 
   def start_link opts do
     Supervisor.start_link __MODULE__, opts, name: __MODULE__
   end
 
   def init opts do
+    defaults = [
+      pool_size: @pool_size,
+      redis_url: @default_redis_url
+    ]
+    opts = Keyword.merge defaults, opts
     children = [
       supervisor(Pixie.TransportSupervisor, []),
       supervisor(__MODULE__.Pool, [opts]),
       supervisor(__MODULE__.Clients, []),
+      worker(__MODULE__.Notifications, [opts]),
       worker(__MODULE__.ClientGC, [])
     ]
 

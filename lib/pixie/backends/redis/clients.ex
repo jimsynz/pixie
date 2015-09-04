@@ -24,12 +24,22 @@ defmodule Pixie.Backend.Redis.Clients do
   def get client_id do
     if is_valid_client? client_id do
       query ["ZADD", key, now, client_id]
-      case find_local_client client_id do
+      case get_local client_id do
         nil ->
           # Assume that a client from another cluster member is reconnecting.
           {:ok, pid} = add_worker Pixie.Client, client_id, [client_id]
           pid
         pid -> pid
+      end
+    end
+  end
+
+  def get_local client_id do
+    Supervisor.which_children(__MODULE__)
+    |> Enum.find_value fn (worker)->
+      case worker do
+        {^client_id, pid, _, _} when is_pid(pid)-> pid
+        _ -> nil
       end
     end
   end
@@ -44,26 +54,12 @@ defmodule Pixie.Backend.Redis.Clients do
   end
 
   defp is_valid_client? client_id do
-    # case query ["SISMEMBER", key, client_id] do
-    #   {:ok, "1"} -> true
-    #   _          -> false
-    # end
     case query ["ZSCORE", key, client_id] do
       {:ok, score} when is_binary(score)->
         score = String.to_integer score
         score >= cutoff
       _ ->
         false
-    end
-  end
-
-  defp find_local_client client_id do
-    Supervisor.which_children(__MODULE__)
-    |> Enum.find_value fn (worker)->
-      case worker do
-        {^client_id, pid, _, _} when is_pid(pid)-> pid
-        _ -> nil
-      end
     end
   end
 

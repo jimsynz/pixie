@@ -41,6 +41,14 @@ defmodule Pixie.Client do
   end
 
   @doc """
+  Explicitly tell the client to check for new messages in the backend
+  mailbox.
+  """
+  def dequeue client do
+    GenServer.cast client, :dequeue
+  end
+
+  @doc """
   Get create a process for the transport we're using, also dequeue any messages
   waiting for us in the backend.
   """
@@ -83,6 +91,22 @@ defmodule Pixie.Client do
   """
   def handle_cast {:deliver, messages}, %{transport_pid: transport}=state do
     Pixie.Transport.enqueue transport, messages
+    {:noreply, state, idle_timeout}
+  end
+
+  @doc """
+  We don't have an active transport, so we can't dequeue at the moment.
+  """
+  def handle_cast :dequeue, %{transport_pid: nil}=state do
+    {:noreply, state, idle_timeout}
+  end
+
+  @doc """
+  We have an active transport and we've been told to check for messages to dequeue.
+  """
+  def handle_cast :dequeue, %{id: id, transport_pid: pid}=state do
+    messages = Pixie.Backend.dequeue_for id
+    Pixie.Transport.enqueue pid, messages
     {:noreply, state, idle_timeout}
   end
 
