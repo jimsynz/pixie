@@ -1,20 +1,18 @@
 defmodule Pixie.Mixfile do
   use Mix.Project
 
-  @source_url "https://bitbucket.org/messagerocket/pixie/"
-
   def project do
     [
-      app: :pixie,
-      version: "0.1.0",
-      elixir: "~> 1.0",
-      build_embedded: Mix.env == :prod,
-      start_permanent: Mix.env == :prod,
-      deps: deps,
+      app:               :pixie,
+      version:           "0.1.0",
+      elixir:            "~> 1.0",
+      build_embedded:    Mix.env == :prod,
+      start_permanent:   Mix.env == :prod,
+      deps:              deps,
       preferred_cli_env: [espec: :test],
-      package: package,
-      description: description,
-      source_url: @source_url
+      package:           package,
+      description:       description,
+      source_url:        "https://github.com/messagerocket/pixie"
     ]
   end
 
@@ -23,8 +21,9 @@ defmodule Pixie.Mixfile do
       contributors: ["James Harton"],
       licenses: ["MIT"],
       links: %{
-        "bitbucket" => @source_url,
-        "messagerocket" => "https://messagerocket.co/"
+        "bitbucket"     => "https://bitbucket.org/messagerocket/pixie",
+        "messagerocket" => "https://messagerocket.co/",
+        "github"        => "https://github.com/messagerocket/pixie"
       }
     ]
   end
@@ -52,7 +51,8 @@ defmodule Pixie.Mixfile do
       {:espec,         "~> 0.7.0", only: :test},
       {:plug,          "~> 1.0.0"},
       {:exredis,       "~> 0.2.0", optional: true},
-      {:poolboy,       "~> 1.5.1"}
+      {:poolboy,       "~> 1.5.1"},
+      {:ex_doc,        "~> 0.8.4", optional: true}
     ]
   end
 end
