@@ -108,7 +108,7 @@ config :myapp, MyApp.Endpoint,
     dispatch: [
       {:_, [
         {"/pixie", Pixie.Adapter.Cowboy.HttpHandler, {Pixie.Adapter.Plug, []}},
-        {:_,       Plug.Adapter.Cowboy.Handler, {MyApp.Endpoing, []}}
+        {:_,       Plug.Adapter.Cowboy.Handler,      {MyApp.Endpoint, []}}
       ]}
     ]
   ]
