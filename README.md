@@ -150,6 +150,14 @@ Pixie.ExtensionRegistry.register MyExtension
 Pixie.ExtensionRegistry.unregister MyExtension
 ```
 
+### Sending messages from the server
+
+You can publish messages from within the server using `Pixie.publish`.
+
+```elixir
+Pixie.publish "/my/channel", %{message: "Pixie is awesome!"}
+```
+
 ## Running the tests
 
 Run `mix espec`.
