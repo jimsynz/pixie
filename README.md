@@ -18,7 +18,7 @@ If you're planning on running Faye on Heroku you're probably going to have a bad
 
 ## License
 
-Pixie is Copyright (c) 2015 Resistor Limited and licensed under the terms of
+Pixie is Copyright (c) 2015 James Harton and licensed under the terms of
 the MIT Public License (see the LICENSE file included with this distribution
 for more details).
 
