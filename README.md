@@ -8,7 +8,7 @@
 
 *WARNING: Pixie is under heavy development.*
 
-Pixie is inspired by Faye and was originally planned as a port, but has
+Pixie is inspired by [Faye](http://faye.jcoglan.com/) and was originally planned as a port, but has
 diverged significantly as I've learned the Erlang way of modelling these
 sorts of problems.
 
@@ -29,8 +29,18 @@ Add `pixie` to your dependencies in the `mix.exs` file:
 ```elixir
 def deps do
   # ...
-  {:pixie, "~> 0.0.1"}
+  {:pixie, "~> 0.0.3"}
   # ...
+end
+```
+
+Also to the `application` section of your `mix.exs` file:
+
+```elixir
+def application do
+  [
+    applications: [ ... :pixie ]
+  ]
 end
 ```
 
@@ -38,33 +48,106 @@ Then use `mix deps.get` to download Pixie from [hex](https://hex.pm/).
 
 ## Status
 
-The server is under heavy development, at the moment it can handle the
-following message types:
+Pixie is still under heavy development, however it works and is compatible
+with the [Faye](http://faye.jcoglan.com/) JavaScript and Ruby clients.
 
-  - Handshake
-  - Connect
-  - Disconnect
-  - Subscribe
-  - Unsubscribe
-  - Publish
+## Features
 
-over the following transports:
-
-  - Long polling
-  - Cross-origin long polling
-  - Callback polling (JSON-P)
-  - Websocket
+  - Compatible with Faye JavaScript and Ruby clients.
+  - Supports both in-memory (ETS) and clustered (Redis) backends.
+  - Handles all Bayeux message types.
+  - Handles all Bayeux features except service channels.
+  - Handles the following connection types:
+      - long-polling
+      - cross-origin-long-polling
+      - callback-polling
+      - websocket
 
 ## Usage
 
-As the server doesn't really do anything at the moment in development I'm
-running `mix pixie.server`, opening [localhost:4000](http://localhost:4000)
-in my browser and manually starting a Faye client:
+Once you have pixie installed in your project you can run a stand alone-server
+with `mix pixie.server`.
 
+### Configuration
 
-```javascript
-client = new Faye.Client("http://localhost:4000/pixie");
-client.connect();
+The configuration options and their defaults are shown here:
+
+```elixir
+# This is the default backend configuration, you don't need to set it.
+config :pixie, :backend,
+  name: :ETS
+
+# If you want to use Redis for clustering. The Redis backend defaults to
+# localhost, unless you specify it here.
+config :pixie, :backend,
+  name: :Redis,
+  redis_url: "redis://localhost:6379"
+
+# When clients subscribe to channels we don't have to respond immediately, and
+# can instead wait until there is a message to be sent on that channel or a
+# heartbeat timeout expires, whichever happens first.
+# Setting this option to true means that subscriptions are responded to
+# which *may* increase time to first message for those not using websockets.
+config :pixie, :subscribe_immediately, false
+
+# Add extensions to be loaded at startup:
+config :pixie, :extensions, [My.Extension.Module.Name]
+
+# Explicitly configure transports available to clients:
+config :pixie, :enabled_transports, ~w| long-polling cross-origin-long-polling callback-polling websocket |
+```
+
+### Using with Phoenix
+
+You can add Pixie as a custom dispatcher rule for Phoenix with Cowboy by adding
+the following to your application configuration:
+
+```elixir
+config :myapp, MyApp.Endpoint,
+  http: [
+    dispatch: [
+      {:_, [
+        {"/pixie", Pixie.Adapter.Cowboy.HttpHandler, {Pixie.Adapter.Plug, []}},
+        {:_,       Plug.Adapter.Cowboy.Handler, {MyApp.Endpoing, []}}
+      ]}
+    ]
+  ]
+```
+
+Obviously, you can change `"/pixie"` to any path you wish.
+
+### Writing extensions
+
+Pixie supports extensions which allow you to modify messages as they come into
+the server.  You can write your own module and use the `Pixie.Extension`
+behaviour.  Your extension needs only implement the function
+`handle(%Pixie.Event{})` which returns a (possibly) modified event.
+
+The `Pixie.Event` struct contains the following fields:
+
+  - `client`:   The pid of the `Pixie.Client` process for which you can enqueue
+                messages directly to the client.
+  - `message`:  The incoming message from the client. Messages are represented
+                as:
+    - `%Pixie.Message.Handshake{}`:   A client handshake request.
+    - `%Pixie.Message.Connect{}`:     A client connection request.
+    - `%Pixie.Message.Subscribe{}`:   A subscription request.
+    - `%Pixie.Message.Publish{}`:     A message to be published by the user.
+    - `%Pixie.Message.Unsubscribe{}`: An unsubscription request.
+    - `%Pixie.Message.Disconnect{}`:  A client disconnection request.
+  - `response`: The response to be sent back to the client.  You can use the
+                functions in `Pixie.Protocol.Error` (automatically imported
+                for you) or you can modify the response directly.
+
+You can configure Pixie to load your extensions at start-up (as per the
+configuration section above) or you can add and remove them at runtime.
+
+```elixir
+Pixie.ExtensionRegistry.register MyExtension
+
+# ... and ...
+
+Pixie.ExtensionRegistry.unregister MyExtension
 ```
 
 ## Running the tests
