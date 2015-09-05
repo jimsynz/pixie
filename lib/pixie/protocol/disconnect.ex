@@ -25,7 +25,7 @@ defmodule Pixie.Disconnect do
   end
 
   def handle event do
-    destroy_client Pixie.ExtensionRegistry.handle event
+    destroy_client Pixie.ExtensionRegistry.incoming event
   end
 
   defp destroy_client %{message: %{client_id: c_id}, response: %{error: nil}}=event do

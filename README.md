@@ -120,8 +120,11 @@ Obviously, you can change `"/pixie"` to any path you wish.
 
 Pixie supports extensions which allow you to modify messages as they come into
 the server.  You can write your own module and use the `Pixie.Extension`
-behaviour.  Your extension needs only implement the function
-`handle(%Pixie.Event{})` which returns a (possibly) modified event.
+behaviour.  Your extension needs only implement two functions:
+
+  - `incoming %Pixie.Event{}` which returns a (possibly) modified event.
+  - `outgoing %Pixie.Message.Publish{}` which returns a (possibly) modified
+     message.
 
 The `Pixie.Event` struct contains the following fields:
 
@@ -138,6 +141,9 @@ The `Pixie.Event` struct contains the following fields:
   - `response`: The response to be sent back to the client.  You can use the
                 functions in `Pixie.Protocol.Error` (automatically imported
                 for you) or you can modify the response directly.
+
+The details of all these structs should be available on
+[hexdocs.pm](http://hexdocs.pm/pixie/overview.html).
 
 You can configure Pixie to load your extensions at start-up (as per the
 configuration section above) or you can add and remove them at runtime.

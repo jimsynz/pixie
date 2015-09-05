@@ -7,7 +7,7 @@ defmodule Pixie.ExtensionRegistry do
   end
 
   def init modules do
-    table = :ets.new __MODULE__, [:set, :protected, :named_table, read_concurrency: true]
+    table = :ets.new __MODULE__, [:bag, :protected, :named_table, read_concurrency: true]
     :ets.insert table, Enum.map(modules, fn(mod)-> {mod,mod} end)
     {:ok, table}
   end
@@ -24,10 +24,17 @@ defmodule Pixie.ExtensionRegistry do
     Enum.map :ets.tab2list(__MODULE__), fn({mod,_})-> mod end
   end
 
-  def handle %Event{}=event do
+  def incoming %Event{}=event do
     Enum.reduce :ets.tab2list(__MODULE__), event, fn
       ({mod,_},e)->
-        apply(mod, :handle, [e])
+        apply(mod, :incoming, [e])
+    end
+  end
+
+  def outgoing %{}=message do
+    Enum.reduce :ets.tab2list(__MODULE__), message, fn
+      ({mod,_},m)->
+        apply(mod, :outgoing, [m])
     end
   end
 

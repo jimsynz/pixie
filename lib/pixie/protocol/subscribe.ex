@@ -31,7 +31,7 @@ defmodule Pixie.Subscribe do
   end
 
   def handle(event) do
-    subscribe Pixie.ExtensionRegistry.handle event
+    subscribe Pixie.ExtensionRegistry.incoming event
   end
 
   defp subscribe %{message: %{subscription: channel, client_id: client_id}, response: %{error: nil}}=event do

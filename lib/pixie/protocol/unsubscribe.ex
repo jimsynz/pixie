@@ -27,7 +27,7 @@ defmodule Pixie.Unsubscribe do
   end
 
   def handle event do
-    unsubscribe Pixie.ExtensionRegistry.handle event
+    unsubscribe Pixie.ExtensionRegistry.incoming event
   end
 
   defp unsubscribe(%{message: %{subscription: channel, client_id: client_id}, response: %{error: nil}}=event) do

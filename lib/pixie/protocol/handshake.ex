@@ -14,7 +14,7 @@ defmodule Pixie.Handshake do
       %{event | response: Error.conntype_mismatch(response, client_transports)}
     else
       event = %{event | response: %{response | supported_connection_types: common_transports}}
-      create_client Pixie.ExtensionRegistry.handle event
+      create_client Pixie.ExtensionRegistry.incoming event
     end
   end
 

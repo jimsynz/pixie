@@ -157,6 +157,7 @@ defmodule Pixie.Backend do
     Enum.reduce messages, %{}, fn
       (%{channel: channel_name}=message, cache)->
         subscribers = Map.get subscribers_by_channel(messages), channel_name
+        message = Pixie.ExtensionRegistry.outgoing message
         Enum.reduce subscribers, cache, fn
           (subscriber, cache)->
             queue = Map.get cache, subscriber, []

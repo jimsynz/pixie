@@ -35,9 +35,11 @@ defmodule Pixie.Publish do
     end
   end
 
-  def handle(%{message: %{channel: channel_name, client_id: client_id}, client: client, response: r}=event) when not is_nil(client) do
+  def handle(%{client: client, response: r}=event) when not is_nil(client) do
+    event = Pixie.ExtensionRegistry.incoming event
+    %{message: %{client_id: client_id, channel: channel_name}}=event
     if Pixie.Backend.client_subscribed? client_id, channel_name do
-      publish Pixie.ExtensionRegistry.handle event
+      publish event
     else
       %{event | response: Error.publish_failed(r, channel_name)}
     end
