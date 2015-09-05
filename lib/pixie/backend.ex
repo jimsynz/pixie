@@ -38,7 +38,7 @@ defmodule Pixie.Backend do
   @doc """
   Create a new `Pixie.Client` process.
   """
-  defcallback create_client :: pid
+  defcallback create_client :: {client_id :: String.t, pid}
 
   @doc """
   Retrieve the process of a client by it's ID.
@@ -85,6 +85,9 @@ defmodule Pixie.Backend do
   """
   defcallback dequeue_for(client_id :: String.t) :: [map]
 
+  @doc """
+  Called by the Pixie supervisor to start the selected backend.
+  """
   def start_link name, options do
     module = Module.concat [:Pixie, :Backend, name]
     apply(module, :start_link, [options])
@@ -93,19 +96,86 @@ defmodule Pixie.Backend do
   # FIXME
   # This is all really horrible, but I can't think of a better way of doing it
   # at the moment.  If you have a better idea then please, send me a PR.
+
+  @doc """
+  Generate a unique identifier which can be used as a `client_id`, etc.
+  """
   def generate_namespace, do: generate_namespace(@default_id_length)
   def generate_namespace(length), do: apply_to_backend(:generate_namespace, [length])
+
+  @doc """
+  Release a namespace, which means it's theoretically possible to reuse it.
+  """
   def release_namespace(namespace), do: apply_to_backend(:release_namespace, [namespace])
+
+  @doc """
+  Create a client. Used internally by the protocol, you probably will never
+  call this.
+  """
   def create_client, do: apply_to_backend(:create_client, [])
+
+  @doc """
+  Retrieve the pid of the client registered to the provided `client_id`.
+  """
   def get_client(client_id), do: apply_to_backend(:get_client, [client_id])
+
+  @doc """
+  Destroy the specified client registered to the provided `client_id`.
+
+  This function has the following side effects:
+    - unsubscribes the client from all their subscribed channels.
+    - destroys any channels with no subscribers left.
+    - destroys any queued messages for the client.
+    - releases the client_id namespace.
+    - destroys the client process.
+    - destroys the transport process (which has the side-effect of
+      disconnecting the user).
+  """
   def destroy_client(client_id), do: apply_to_backend(:destroy_client, [client_id])
   def destroy_client(client_id, reason), do: apply_to_backend(:destroy_client, [client_id, reason])
+
+  @doc """
+  Subscribe the specified client to the specified channel.
+  """
   def subscribe(client_id, channel_name), do: apply_to_backend(:subscribe, [client_id, channel_name])
+  @doc """
+  Unsubscribe the specified client from the specified channel.
+
+  This function has the following side effects:
+    - destroys any channels with no subscribers left.
+  """
   def unsubscribe(client_id, channel_name), do: apply_to_backend(:unsubscribe, [client_id, channel_name])
+
+  @doc """
+  Returns a `HashSet` containing the list of `client_id`s subscribed to the
+  provided channel.
+  """
   def subscribers_of(channel_name), do: apply_to_backend(:subscribers_of, [channel_name])
+
+  @doc """
+  Returns a `HashSet` containing the list of channels the client is subscribed to.
+  """
   def subscribed_to(client_id), do: apply_to_backend(:subscribed_to, [client_id])
+
+  @doc """
+  Responds `true` or `false` depending on whether the `client_id` is subscribed
+  to the given channel.
+  """
   def client_subscribed?(client_id, channel_name), do: apply_to_backend(:client_subscribed?, [client_id, channel_name])
+
+  @doc """
+  Queue messages for delivery to the specified client.  This is usually only
+  called by the protocol when publishing messages for clients which are either
+  in-between polls or located on another Pixie instance. Use `publish` instead.
+  """
   def queue_for(client_id, messages), do: apply_to_backend(:queue_for, [client_id, messages])
+
+  @doc """
+  Dequeue any messages awaiting delivery to the specified client.  This is
+  usually only called by the protocol when a client reconnects to retrieve
+  any messages that arrived while the client was disconnected.
+  Use `publish` instead.
+  """
   def dequeue_for(client_id), do: apply_to_backend(:dequeue_for, [client_id])
 
   @doc """
