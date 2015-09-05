@@ -20,6 +20,10 @@ defmodule Pixie.Adapter.Plug do
   end
 
   def handle conn, _ do
+    conn = case get_req_header(conn, "origin") do
+      [value] -> put_resp_header conn, "access-control-allow-origin", value
+      [] -> conn
+    end
     if get_req_header(conn, "access-control-request-method") == ["POST"] do
       halt handle_options conn
     else
@@ -48,10 +52,6 @@ defmodule Pixie.Adapter.Plug do
 
     if Regex.match? @valid_jsonp_callback, jsonp do
       json  = Poison.decode! json
-      conn = case get_req_header(conn, "origin") do
-        [value] -> put_resp_header conn, "access-control-allow-origin", value
-        [] -> conn
-      end
       data = Pixie.Protocol.handle json
       data = Poison.encode! data
 
