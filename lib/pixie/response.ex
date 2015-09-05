@@ -1,4 +1,12 @@
 defmodule Pixie.Response do
+
+  @moduledoc """
+  This module handles creation of appropriate responses to client messages.
+  """
+
+  @doc """
+  Based on the incoming message type, delegate to the correct Response module.
+  """
   def init %Pixie.Message.Handshake{}=message do
     Pixie.Response.Handshake.init message
   end
@@ -23,6 +31,10 @@ defmodule Pixie.Response do
     Pixie.Response.Publish.init message
   end
 
+  @doc """
+  Report whether the response is "successful", ie whether the response contains
+  a value in it's error field or not.
+  """
   def successful?(%{error: nil}) do
     true
   end
