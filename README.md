@@ -29,7 +29,7 @@ Add `pixie` to your dependencies in the `mix.exs` file:
 ```elixir
 def deps do
   # ...
-  {:pixie, "~> 0.0.3"}
+  {:pixie, "~> 0.1.3"}
   # ...
 end
 ```
