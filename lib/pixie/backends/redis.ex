@@ -93,7 +93,7 @@ defmodule Pixie.Backend.Redis do
     __MODULE__.MessageQueue.dequeue client_id
   end
 
-  def do_destroy_client client_id, reason do
+  defp do_destroy_client client_id, reason do
     subs = __MODULE__.ClientSubscriptions.get(client_id)
     Enum.each subs, fn(channel)->
       do_unsubscribe client_id, channel
