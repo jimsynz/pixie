@@ -9,7 +9,7 @@ defmodule Pixie.Extension do
   defmodule AuthenticationExtension do
     use Pixie.Extension
 
-    def handle %Event{message: %{ext: %{username: u, password: p}=message}}=event do
+    def incoming %Event{message: %{ext: %{username: u, password: p}=message}}=event do
       case User.authenticate username, password do
         :ok ->
           %{event | message: %{message | ext: nil}}
@@ -18,7 +18,7 @@ defmodule Pixie.Extension do
       end
     end
 
-    def handle %Event{}=event do
+    def incoming %Event{}=event do
       %{event | response: %{response | error: "Authentication Failed"}}
     end
   ```
@@ -64,5 +64,14 @@ defmodule Pixie.Extension do
   to `nil`, likewise if you want to stop a response being sent to the client.
   You must *always* return a Pixie.Event struct from `handle/1`.
   """
-  defcallback handle(event :: Pixie.Event.t) :: Pixie.Event.t
+  defcallback incoming(event :: Pixie.Event.t) :: Pixie.Event.t
+
+  @doc """
+  Can be used to modify an outgoing message before it is passed to the channel
+  for final delivery to clients.
+
+  If you wish to stop this message being delivered then return `nil` otherwise
+  you must always return a message back to the caller.
+  """
+  defcallback outgoing(message :: Pixie.Message.Publish.t) :: Pixie.Message.Publish.t
 end
