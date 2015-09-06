@@ -30,7 +30,7 @@ defmodule Pixie.Mixfile do
 
   defp description do
     """
-    Faye compatible server written in Elixir.
+    Bayeux compatible server written in Elixir.
     """
   end
 
