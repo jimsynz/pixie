@@ -7,8 +7,8 @@ defmodule Pixie.ExtensionRegistry do
   end
 
   def init modules do
-    table = :ets.new __MODULE__, [:bag, :protected, :named_table, read_concurrency: true]
-    :ets.insert table, Enum.map(modules, fn(mod)-> {mod,mod} end)
+    table = :ets.new __MODULE__, [:ordered_set, :protected, :named_table, read_concurrency: true]
+    :ets.insert table, Enum.map(modules, fn(mod)-> {now,mod} end)
     {:ok, table}
   end
 
@@ -21,30 +21,34 @@ defmodule Pixie.ExtensionRegistry do
   end
 
   def registered_extensions do
-    Enum.map :ets.tab2list(__MODULE__), fn({mod,_})-> mod end
+    Enum.map :ets.tab2list(__MODULE__), fn({_,mod})-> mod end
   end
 
   def incoming %Event{}=event do
     Enum.reduce :ets.tab2list(__MODULE__), event, fn
-      ({mod,_},e)->
+      ({_,mod},e)->
         apply(mod, :incoming, [e])
     end
   end
 
   def outgoing %{}=message do
     Enum.reduce :ets.tab2list(__MODULE__), message, fn
-      ({mod,_},m)->
+      ({_,mod},m)->
         apply(mod, :outgoing, [m])
     end
   end
 
   def handle_call {:register, extension}, _from, table do
-    :ets.insert table, {extension, extension}
+    :ets.insert table, {now, extension}
     {:reply, :ok, table}
   end
 
   def handle_call {:unregister, extension}, _from, table do
-    :ets.delete table, extension
+    :ets.match_delete table, {:_, extension}
     {:reply, :ok, table}
+  end
+
+  defp now do
+    Timex.Time.now |> Timex.Time.to_usecs
   end
 end
