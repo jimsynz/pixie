@@ -138,6 +138,9 @@ defmodule Pixie do
   end
   ```
   """
+  def unsubscribe pid do
+    Pixie.LocalSubscription.unsubscribe pid
+  end
 
   @doc """
   Returns a list of the configured extensions.
