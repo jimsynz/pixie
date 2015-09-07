@@ -164,6 +164,32 @@ You can publish messages from within the server using `Pixie.publish`.
 Pixie.publish "/my/channel", %{message: "Pixie is awesome!"}
 ```
 
+### Receiving messages from the server
+
+You can subscribe to a channel and receive messages on that channel using
+`Pixie.subscribe`.
+
+```elixir
+{:ok, pid} = Pixie.subscribe "/my/channel", fn (message, _pid)->
+  IO.puts "Received message: #{inspect message}"
+end
+```
+
+A separate worker process is created for each subscription, and it's pid is
+both returned from the `subscribe` call, but also passed as the second argument
+into the callback function, which means that you can do things like receive a
+single message, then unsubscribe:
+
+```elixir
+Pixie.subscribe "/only_one_message", fn(message, pid)->
+  IO.puts "Received message: #{inspect message}"
+  Pixie.unsubscribe pid
+end
+```
+
+Either way, you can use `Pixie.unsubscribe pid` to unsubscribe and terminate
+the subscription process.
+
 ## Running the tests
 
 Run `mix espec`.

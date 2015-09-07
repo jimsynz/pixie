@@ -48,6 +48,8 @@ defmodule Pixie.Backend.ETS do
     __MODULE__.Clients.get client_id
   end
 
+  def ping_client(_client_id), do: :ok
+
   def destroy_client client_id, reason do
     do_destroy_client client_id, reason
   end

@@ -34,6 +34,12 @@ defmodule Pixie.Backend.Redis.Clients do
     end
   end
 
+  def ping client_id do
+    if is_valid_client? client_id do
+      query ["ZADD", key, now, client_id]
+    end
+  end
+
   def get_local client_id do
     Supervisor.which_children(__MODULE__)
     |> Enum.find_value fn (worker)->

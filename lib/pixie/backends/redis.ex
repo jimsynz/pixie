@@ -51,6 +51,10 @@ defmodule Pixie.Backend.Redis do
     do_destroy_client client_id, reason
   end
 
+  def ping_client client_id do
+    __MODULE__.Clients.ping client_id
+  end
+
   def subscribe client_id, channel_name do
     __MODULE__.Channels.create channel_name
     __MODULE__.ClientSubscriptions.subscribe client_id, channel_name

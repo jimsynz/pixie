@@ -49,6 +49,13 @@ defmodule Pixie.Client do
   end
 
   @doc """
+  Explicitly ping the client to stop it from timing out.
+  """
+  def ping client do
+    GenServer.cast client, :ping
+  end
+
+  @doc """
   Get create a process for the transport we're using, also dequeue any messages
   waiting for us in the backend.
   """
@@ -110,8 +117,12 @@ defmodule Pixie.Client do
     {:noreply, state, idle_timeout}
   end
 
+  def handle_cast :ping, %{id: id}=state do
+    Pixie.Backend.ping_client id
+    {:noreply, state, idle_timeout}
+  end
+
   def handle_info :timeout, %{id: id}=state do
-    # Task.async Pixie.Backend, :destroy_client, [id, "Idle timeout."]
     Pixie.Backend.destroy_client id, "Idle timeout."
     {:noreply, state}
   end

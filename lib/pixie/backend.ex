@@ -135,6 +135,12 @@ defmodule Pixie.Backend do
   def destroy_client(client_id, reason), do: apply_to_backend(:destroy_client, [client_id, reason])
 
   @doc """
+  Ping the specified client.  This is specifically used for backends which
+  will expire clients for inactivity (ie Redis).
+  """
+  def ping_client(client_id), do: apply_to_backend(:ping_client, [client_id])
+
+  @doc """
   Subscribe the specified client to the specified channel.
   """
   def subscribe(client_id, channel_name), do: apply_to_backend(:subscribe, [client_id, channel_name])

@@ -110,6 +110,36 @@ defmodule Pixie do
   end
 
   @doc """
+  Subscribe to a channel and call the provided function with messages.
+
+  ```elixir
+  {:ok, sub} = Pixie.subscribe "/my_awesome_channel", fn(message,_)->
+    IO.inspect message
+  end
+  ```
+
+  The function must take two arguments:
+    - A message struct.
+    - The subscription pid.
+  """
+  def subscribe channel_name, callback do
+    Pixie.LocalSubscriptionSupervisor.add_worker Pixie.LocalSubscription, {channel_name, callback}, [channel_name, callback]
+  end
+
+  @doc """
+  Cancel a local subscription.
+
+  Example:
+
+  ```elixir
+  Pixie.subscribe "/only_one_please", fn(message,sub)->
+    IO.inspect message
+    Pixie.unsubscribe sub
+  end
+  ```
+  """
+
+  @doc """
   Returns a list of the configured extensions.
   """
   def configured_extensions do

@@ -10,6 +10,7 @@ defmodule Pixie.Supervisor do
     children = [
       worker(Pixie.ExtensionRegistry, [Pixie.configured_extensions]),
       worker(Pixie.Backend, [backend_name, backend_options]),
+      supervisor(Pixie.LocalSubscriptionSupervisor, [])
     ]
 
     children = case Application.get_env(:pixie, :start_cowboy, false) do
