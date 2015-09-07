@@ -96,6 +96,11 @@ defmodule Pixie.Backend.ETS do
     __MODULE__.MessageQueue.dequeue client_id
   end
 
+  def deliver client_id, messages do
+    client = get_client client_id
+    Pixie.Client.deliver client, messages
+  end
+
   def terminate _reason, _table do
     Enum.each __MODULE__.Clients.list, fn(client_id) ->
       do_destroy_client client_id, "Backend exiting"

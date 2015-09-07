@@ -41,11 +41,13 @@ defmodule Pixie.Backend.Redis.Clients do
   end
 
   def get_local client_id do
-    Supervisor.which_children(__MODULE__)
-    |> Enum.find_value fn (worker)->
-      case worker do
-        {^client_id, pid, _, _} when is_pid(pid)-> pid
-        _ -> nil
+    if is_valid_client? client_id do
+      Supervisor.which_children(__MODULE__)
+      |> Enum.find_value fn (worker)->
+        case worker do
+          {^client_id, pid, _, _} when is_pid(pid)-> pid
+          _ -> nil
+        end
       end
     end
   end
@@ -60,13 +62,17 @@ defmodule Pixie.Backend.Redis.Clients do
   end
 
   defp is_valid_client? client_id do
-    case query ["ZSCORE", key, client_id] do
+    valid = case query ["ZSCORE", key, client_id] do
       {:ok, score} when is_binary(score)->
         score = String.to_integer score
         score >= cutoff
       _ ->
         false
     end
+
+    unless valid, do: Pixie.Backend.destroy_client(client_id, "Client is no longer valid.")
+
+    valid
   end
 
   defp now do

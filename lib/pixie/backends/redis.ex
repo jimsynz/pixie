@@ -56,7 +56,9 @@ defmodule Pixie.Backend.Redis do
   end
 
   def subscribe client_id, channel_name do
-    __MODULE__.Channels.create channel_name
+    unless __MODULE__.Channels.exists? channel_name do
+      __MODULE__.Channels.create channel_name
+    end
     __MODULE__.ClientSubscriptions.subscribe client_id, channel_name
     __MODULE__.ChannelSubscriptions.subscribe channel_name, client_id
     Logger.info "[#{client_id}]: Subscribed #{channel_name}"
@@ -95,6 +97,15 @@ defmodule Pixie.Backend.Redis do
 
   def dequeue_for client_id do
     __MODULE__.MessageQueue.dequeue client_id
+  end
+
+  def deliver client_id, messages do
+    case __MODULE__.Clients.get_local client_id do
+      nil ->
+        queue_for client_id, messages
+      client ->
+        Pixie.Client.deliver client, messages
+    end
   end
 
   defp do_destroy_client client_id, reason do

@@ -29,7 +29,8 @@ defmodule Pixie.LocalSubscription do
     {:noreply, state, ping_timeout}
   end
 
-  def handle_info {_ref, messages}, %{callback: callback}=state do
+  def handle_info {_ref, messages}, %{client_pid: pid, callback: callback}=state do
+    Pixie.Client.ping pid
     Enum.each messages, fn(message)->
       callback.(message, self)
     end
@@ -37,11 +38,11 @@ defmodule Pixie.LocalSubscription do
   end
 
   def handle_cast :unsubscribe, %{client_id: client_id} do
-    Pixie.Backend.destroy_client client_id
+    Pixie.Backend.destroy_client client_id, "Local unsubscription."
     {:stop, :normal, nil}
   end
 
   defp ping_timeout do
-    Pixie.timeout
+    trunc Pixie.timeout * 0.75
   end
 end

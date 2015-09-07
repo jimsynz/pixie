@@ -86,6 +86,11 @@ defmodule Pixie.Backend do
   defcallback dequeue_for(client_id :: String.t) :: [map]
 
   @doc """
+  Deliver messages to clients, local or otherwise.
+  """
+  defcallback deliver(client_id :: String.t, messages :: list) :: atom
+
+  @doc """
   Called by the Pixie supervisor to start the selected backend.
   """
   def start_link name, options do
@@ -197,9 +202,8 @@ defmodule Pixie.Backend do
     # each `Pixie.Client.deliver` call.
     Enum.each messages_by_client_id(messages), fn
       ({client_id, messages})->
-        client   = get_client client_id
         messages = Enum.reverse(messages)
-        Pixie.Client.deliver client, messages
+        apply_to_backend :deliver, [client_id, messages]
     end
 
     # Then we publish the rest, if any.

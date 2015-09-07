@@ -3,7 +3,7 @@ defmodule Pixie.Backend.Redis.MessageQueue do
 
   def queue client_id, messages do
     messages = Enum.map(messages, &:erlang.term_to_binary/1)
-    {ok, _}  = query ["LPUSH", key(client_id)] ++  messages
+    {ok, _}  = query ["LPUSH", key(client_id)] ++ messages
     Pixie.Backend.Redis.Notifications.trigger client_id
     ok
   end
