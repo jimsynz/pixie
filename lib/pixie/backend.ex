@@ -208,7 +208,6 @@ defmodule Pixie.Backend do
 
     # Then we publish the rest, if any.
     publish rest
-    :ok
   end
 
   def publish(message), do: publish([message])

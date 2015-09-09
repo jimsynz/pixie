@@ -22,7 +22,6 @@ defmodule Pixie.Transport.Default do
         {:reply, update_advice(advice), state}
       end
 
-      # Long polling doesn't stray from the default advice
       def update_advice advice do
         advice
       end

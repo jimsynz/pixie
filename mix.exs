@@ -36,7 +36,7 @@ defmodule Pixie.Mixfile do
 
   def application do
     [
-      applications: [:logger, :cowboy, :plug],
+      applications: [:logger, :cowboy, :plug, :gproc],
       mod: {Pixie, []}
     ]
   end
@@ -52,7 +52,8 @@ defmodule Pixie.Mixfile do
       {:plug,          "~> 1.0.0"},
       {:exredis,       "~> 0.2.0", optional: true},
       {:poolboy,       "~> 1.5.1"},
-      {:ex_doc,        "~> 0.8.4", optional: true}
+      {:ex_doc,        "~> 0.8.4", optional: true},
+      {:gproc,         "~> 0.3.1"}
     ]
   end
 end

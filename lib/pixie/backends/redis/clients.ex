@@ -1,6 +1,5 @@
 defmodule Pixie.Backend.Redis.Clients do
   require Logger
-  use Pixie.GenericSupervisor
   import Pixie.Backend.Redis.Connection
 
   alias Timex.Time
@@ -11,14 +10,14 @@ defmodule Pixie.Backend.Redis.Clients do
 
   def create do
     client_id = Pixie.Backend.generate_namespace
+    {:ok, pid} = Pixie.ClientSupervisor.start_child client_id
     {:ok, _} = query ["ZADD", key, now, client_id]
-    {:ok, pid} = add_worker Pixie.Client, client_id, [client_id]
     {client_id, pid}
   end
 
   def destroy client_id do
+    Pixie.ClientSupervisor.terminate_child client_id
     {:ok, _} = query ["ZREM", key, client_id]
-    terminate_worker client_id
   end
 
   def get client_id do
@@ -27,7 +26,7 @@ defmodule Pixie.Backend.Redis.Clients do
       case get_local client_id do
         nil ->
           # Assume that a client from another cluster member is reconnecting.
-          {:ok, pid} = add_worker Pixie.Client, client_id, [client_id]
+          {:ok, pid} = Pixie.ClientSupervisor.start_child client_id
           pid
         pid -> pid
       end
@@ -42,13 +41,7 @@ defmodule Pixie.Backend.Redis.Clients do
 
   def get_local client_id do
     if is_valid_client? client_id do
-      Supervisor.which_children(__MODULE__)
-      |> Enum.find_value fn (worker)->
-        case worker do
-          {^client_id, pid, _, _} when is_pid(pid)-> pid
-          _ -> nil
-        end
-      end
+      Pixie.ClientSupervisor.whereis client_id
     end
   end
 

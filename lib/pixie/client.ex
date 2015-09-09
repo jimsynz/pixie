@@ -6,7 +6,7 @@ defmodule Pixie.Client do
   alias __MODULE__
 
   def start_link id do
-    GenServer.start_link __MODULE__, id
+    GenServer.start_link __MODULE__, id, name: {:via, :gproc, {:n, :l, {__MODULE__, id}}}
   end
 
   def init id do
@@ -134,5 +134,4 @@ defmodule Pixie.Client do
   defp idle_timeout do
     Pixie.timeout * 4
   end
-
 end

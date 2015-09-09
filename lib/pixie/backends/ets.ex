@@ -19,13 +19,13 @@ defmodule Pixie.Backend.ETS do
 
   def init _options do
     children = [
+      supervisor(Pixie.ClientSupervisor, []),
+      supervisor(Pixie.TransportSupervisor, []),
       worker(__MODULE__.Namespaces, []),
-      supervisor(__MODULE__.Clients, []),
       worker(__MODULE__.ClientSubscriptions, []),
       worker(__MODULE__.ChannelSubscriptions, []),
       worker(__MODULE__.Channels, []),
-      worker(__MODULE__.MessageQueue, []),
-      supervisor(Pixie.TransportSupervisor, [])
+      worker(__MODULE__.MessageQueue, [])
     ]
     supervise children, strategy: :one_for_one
   end

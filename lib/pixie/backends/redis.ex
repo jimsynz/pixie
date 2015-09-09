@@ -19,9 +19,9 @@ defmodule Pixie.Backend.Redis do
     ]
     opts = Keyword.merge defaults, opts
     children = [
+      supervisor(Pixie.ClientSupervisor, []),
       supervisor(Pixie.TransportSupervisor, []),
       supervisor(__MODULE__.Pool, [opts]),
-      supervisor(__MODULE__.Clients, []),
       worker(__MODULE__.Notifications, [opts]),
       worker(__MODULE__.ClientGC, [])
     ]
