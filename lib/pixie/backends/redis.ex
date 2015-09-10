@@ -103,8 +103,8 @@ defmodule Pixie.Backend.Redis do
     case __MODULE__.Clients.get_local client_id do
       nil ->
         queue_for client_id, messages
-      client ->
-        Pixie.Client.deliver client, messages
+      _client ->
+        Pixie.Client.deliver client_id, messages
     end
   end
 
@@ -118,7 +118,6 @@ defmodule Pixie.Backend.Redis do
     Logger.debug "[#{client_id}]: Unsubscribed from #{Enum.count subs} channels"
     Logger.info "[#{client_id}]: Client destroyed: #{reason}"
     __MODULE__.Clients.destroy client_id
-    Pixie.TransportSupervisor.terminate_worker client_id
   end
 
   defp do_unsubscribe client_id, channel_name do

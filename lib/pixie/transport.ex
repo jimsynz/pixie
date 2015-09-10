@@ -1,14 +1,10 @@
 defmodule Pixie.Transport do
   import Pixie.Utils.String
 
-  def get transport_name, client_id do
-    transport_name = transport_name
-      |> String.split("-")
-      |> Enum.join("_")
-      |> camelize(true)
-
-    module = Module.concat __MODULE__, transport_name
-    Pixie.TransportSupervisor.replace_worker module, client_id, []
+  def start_link transport_name, client_id do
+    transport_name
+      |> module_from_name
+      |> apply(:start_link, [client_id])
   end
 
   def advice transport, advice do
@@ -29,5 +25,14 @@ defmodule Pixie.Transport do
 
   def ensure_enqueue transport, messages do
     GenServer.call transport, {:ensure_enqueue, messages}
+  end
+
+  defp module_from_name name do
+    name = name
+      |> String.split("-")
+      |> Enum.join("_")
+      |> camelize(true)
+
+    Module.concat __MODULE__, name
   end
 end

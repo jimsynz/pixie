@@ -5,8 +5,8 @@ defmodule Pixie.Transport.Default do
     quote do
       use GenServer
 
-      def start_link do
-        GenServer.start_link __MODULE__, []
+      def start_link id do
+        GenServer.start_link __MODULE__, [], name: {:via, :gproc, {:n, :l, {Pixie.Transport, id}}}
       end
 
       def init [] do
@@ -86,7 +86,7 @@ defmodule Pixie.Transport.Default do
       end
 
       defoverridable [
-        start_link: 0,
+        start_link: 1,
         update_advice: 1,
         enqueue_messages: 2,
         dequeue_messages: 1

@@ -32,8 +32,8 @@ defmodule Pixie.Handshake do
   end
 
   defp create_client %{response: %{error: nil}=response}=event do
-    {client_id, client} = Backend.create_client
-    %{event | client: client, response: %{response | client_id: client_id}}
+    {client_id, _} = Backend.create_client
+    %{event | client_id: client_id, response: %{response | client_id: client_id}}
   end
 
   defp create_client event do

@@ -5,8 +5,8 @@ defmodule Pixie.Transport.Stream do
     quote do
       use GenServer
 
-      def start_link do
-        GenServer.start_link __MODULE__, []
+      def start_link id do
+        GenServer.start_link __MODULE__, [], name: {:via, :gproc, {:n, :l, {Pixie.Transport, id}}}
       end
 
       def init [] do
@@ -18,11 +18,9 @@ defmodule Pixie.Transport.Stream do
         :ok
       end
 
-      def terminate _, {from, state} do
-        if Process.alive? from do
-          dequeue_messages state
-          send from, :close
-        end
+      def terminate _, {from, _}=state do
+        dequeue_messages state
+        send from, :close
         :ok
       end
 
@@ -76,7 +74,7 @@ defmodule Pixie.Transport.Stream do
       end
 
       def handle_info :timeout, state do
-        {:noreply, dequeue_messages state}
+        {:noreply, dequeue_messages(state)}
       end
 
       def handle_info {:EXIT, _pid, _reason}, state do
@@ -102,7 +100,7 @@ defmodule Pixie.Transport.Stream do
 
       def dequeue_messages {waiting_adapter, queued_messages} do
         send waiting_adapter, {:deliver, queued_messages}
-        {nil, []}
+        {waiting_adapter, []}
       end
 
       defp sanitize_from from do
@@ -116,7 +114,7 @@ defmodule Pixie.Transport.Stream do
       end
 
       defoverridable [
-        start_link: 0,
+        start_link: 1,
         update_advice: 1,
         enqueue_messages: 2,
         dequeue_messages: 1

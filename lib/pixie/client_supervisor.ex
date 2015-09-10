@@ -6,7 +6,7 @@ defmodule Pixie.ClientSupervisor do
   end
 
   def init [] do
-    supervise([worker(Pixie.Client, [])], strategy: :simple_one_for_one)
+    supervise([worker(Pixie.Client, [], restart: :transient)], strategy: :simple_one_for_one)
   end
 
   def start_child client_id do
@@ -14,7 +14,8 @@ defmodule Pixie.ClientSupervisor do
   end
 
   def terminate_child id do
-    Supervisor.terminate_child __MODULE__, whereis(id)
+    pid = whereis(id)
+    Supervisor.terminate_child __MODULE__, pid
   end
 
   def whereis id do

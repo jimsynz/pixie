@@ -17,7 +17,10 @@ defmodule Pixie.Server do
   end
 
   defp default_config do
-    [port: port]
+    [
+      port: port,
+      max_connections: :infinity
+    ]
   end
 
   defp port do

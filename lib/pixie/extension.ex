@@ -57,9 +57,6 @@ defmodule Pixie.Extension do
   response being sent back to the sending client is stored in the `response`
   property.
 
-  Depending on the kind of message you are likely to also receive the PID of
-  the `Pixie.Client` in the `client` property also.
-
   Note that if you want to stop the message from being delivered then set it
   to `nil`, likewise if you want to stop a response being sent to the client.
   You must *always* return a Pixie.Event struct from `handle/1`.

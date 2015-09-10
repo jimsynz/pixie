@@ -81,10 +81,10 @@ defmodule Pixie.Protocol do
 
   defp find_transport events do
     Enum.find_value events, fn
-      %{client: nil} ->
+      %{client_id: nil} ->
         nil
-      %{client: c} ->
-        case Pixie.Client.transport c do
+      %{client_id: client_id} ->
+        case Pixie.Client.transport client_id do
           pid when is_pid(pid) -> pid
           _ -> nil
         end

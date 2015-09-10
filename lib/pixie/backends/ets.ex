@@ -97,8 +97,7 @@ defmodule Pixie.Backend.ETS do
   end
 
   def deliver client_id, messages do
-    client = get_client client_id
-    Pixie.Client.deliver client, messages
+    Pixie.Client.deliver client_id, messages
   end
 
   def terminate _reason, _table do
@@ -116,7 +115,6 @@ defmodule Pixie.Backend.ETS do
     Logger.debug "[#{client_id}]: Unsubscribed from #{Enum.count subs} channels"
     Logger.info "[#{client_id}]: Client destroyed: #{reason}"
     __MODULE__.Clients.destroy client_id
-    Pixie.TransportSupervisor.terminate_worker client_id
   end
 
   defp do_unsubscribe client_id, channel_name do

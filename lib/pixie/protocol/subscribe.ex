@@ -21,12 +21,12 @@ defmodule Pixie.Subscribe do
     %{event | response: Error.channel_forbidden(r, channel)}
   end
 
-  def handle(%{message: %{client_id: c_id}, client: nil, response: r}=event) do
+  def handle(%{message: %{client_id: c_id}, client_id: nil, response: r}=event) do
     case Backend.get_client(c_id) do
       nil ->
         %{event | response: Error.client_unknown(r, c_id)}
-      client ->
-        handle %{event | client: client}
+      _client ->
+        handle %{event | client_id: c_id}
     end
   end
 
@@ -34,7 +34,7 @@ defmodule Pixie.Subscribe do
     subscribe Pixie.ExtensionRegistry.incoming event
   end
 
-  defp subscribe %{message: %{subscription: channel, client_id: client_id}, response: %{error: nil}}=event do
+  defp subscribe %{message: %{subscription: channel}, client_id: client_id, response: %{error: nil}}=event do
     Backend.subscribe client_id, channel
     event
   end

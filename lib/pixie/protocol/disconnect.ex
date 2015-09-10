@@ -15,12 +15,12 @@ defmodule Pixie.Disconnect do
     parameter_missing event
   end
 
-  def handle %{message: %{client_id: c_id}, client: nil, response: r}=event do
+  def handle %{message: %{client_id: c_id}, client_id: nil, response: r}=event do
     case Backend.get_client(c_id) do
       nil ->
         %{event | response: Error.client_unknown(r, c_id)}
-      client ->
-        handle %{event | client: client}
+      _client ->
+        handle %{event | client_id: c_id}
     end
   end
 

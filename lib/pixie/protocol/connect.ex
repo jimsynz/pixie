@@ -18,19 +18,19 @@ defmodule Pixie.Connect do
   def handle(%{message: %{connection_type: nil}}=event), do: parameter_missing(event)
 
   # Get the client from the backend and call handle again.
-  def handle %{message: %{client_id: c_id}, client: nil, response: r}=event do
+  def handle %{message: %{client_id: c_id}, client_id: nil, response: r}=event do
     case Backend.get_client(c_id) do
       nil ->
         %{event | response: Error.client_unknown(r, c_id)}
-      client ->
-        handle %{event | client: client}
+      _client ->
+        handle %{event | client_id: c_id}
     end
   end
 
   # Validate the connection type and respond.
-  def handle(%{message: %{connection_type: connection_type}, client: client, response: %{advice: a}=r}=event) when is_pid(client) do
+  def handle(%{message: %{connection_type: connection_type}, client_id: client_id, response: %{advice: a}=r}=event) do
     if Set.member? Pixie.enabled_transports, connection_type do
-      transport = Pixie.Client.set_transport client, connection_type
+      transport = Pixie.Client.set_transport client_id, connection_type
       advice    = Pixie.Transport.advice transport, a
       Pixie.ExtensionRegistry.incoming %{event | response: %{r | advice: advice}}
     else

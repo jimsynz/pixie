@@ -17,12 +17,12 @@ defmodule Pixie.Unsubscribe do
   def handle(%{message: %{client_id: nil}}=event),    do: parameter_missing(event)
   def handle(%{message: %{subscription: nil}}=event), do: parameter_missing(event)
 
-  def handle(%{message: %{client_id: c_id}, client: nil, response: r}=event) do
+  def handle(%{message: %{client_id: c_id}, client_id: nil, response: r}=event) do
     case Backend.get_client(c_id) do
       nil ->
         %{event | response: Error.client_unknown(r, c_id)}
-      client ->
-        handle %{event | client: client}
+      _client ->
+        handle %{event | client_id: c_id}
     end
   end
 
@@ -30,7 +30,7 @@ defmodule Pixie.Unsubscribe do
     unsubscribe Pixie.ExtensionRegistry.incoming event
   end
 
-  defp unsubscribe(%{message: %{subscription: channel, client_id: client_id}, response: %{error: nil}}=event) do
+  defp unsubscribe(%{message: %{subscription: channel}, client_id: client_id, response: %{error: nil}}=event) do
     Backend.unsubscribe client_id, channel
     event
   end

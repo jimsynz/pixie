@@ -128,19 +128,19 @@ behaviour.  Your extension needs only implement two functions:
 
 The `Pixie.Event` struct contains the following fields:
 
-  - `client`:   The pid of the `Pixie.Client` process for which you can enqueue
-                messages directly to the client.
-  - `message`:  The incoming message from the client. Messages are represented
-                as:
+  - `client_id`: The ID of the Client.  You can use this to find `Pixie.Client`
+                 and `Pixie.Transport` processes should you need to.
+  - `message`:   The incoming message from the client. Messages are represented
+                 as:
     - `%Pixie.Message.Handshake{}`:   A client handshake request.
     - `%Pixie.Message.Connect{}`:     A client connection request.
     - `%Pixie.Message.Subscribe{}`:   A subscription request.
     - `%Pixie.Message.Publish{}`:     A message to be published by the user.
     - `%Pixie.Message.Unsubscribe{}`: An unsubscription request.
     - `%Pixie.Message.Disconnect{}`:  A client disconnection request.
-  - `response`: The response to be sent back to the client.  You can use the
-                functions in `Pixie.Protocol.Error` (automatically imported
-                for you) or you can modify the response directly.
+  - `response`:  The response to be sent back to the client.  You can use the
+                 functions in `Pixie.Protocol.Error` (automatically imported
+                 for you) or you can modify the response directly.
 
 The details of all these structs should be available on
 [hexdocs.pm](http://hexdocs.pm/pixie/overview.html).

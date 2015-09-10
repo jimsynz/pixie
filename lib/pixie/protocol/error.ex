@@ -29,8 +29,13 @@ defmodule Pixie.Protocol.Error do
     error r, :parameter_missing, parameters
   end
 
-  def client_unknown(%{advice: a}=r, client_id) do
+  def client_unknown(%{advice: %{}=a}=r, client_id) do
     r = %{r | advice: %{a | reconnect: "handshake"}}
+    error r, :client_unknown, [client_id]
+  end
+
+  def client_unknown(%{advice: nil}=r, client_id) do
+    r = %{r | advice: %{reconnect: "handshake"}}
     error r, :client_unknown, [client_id]
   end
 
