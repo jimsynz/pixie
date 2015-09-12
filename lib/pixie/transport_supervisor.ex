@@ -14,8 +14,10 @@ defmodule Pixie.TransportSupervisor do
   end
 
   def terminate_child id do
-    pid = whereis(id)
-    Supervisor.terminate_child __MODULE__, pid
+    case whereis(id) do
+      nil -> :ok
+      pid -> Supervisor.terminate_child __MODULE__, pid
+    end
   end
 
   def replace_child transport_name, client_id do

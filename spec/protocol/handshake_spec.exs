@@ -16,8 +16,8 @@ defmodule PixieHandshakeSpec do
     end
 
     let :client do
-      %{client: client} = handled
-      client
+      %{client_id: client_id} = handled
+      Pixie.ClientSupervisor.whereis client_id
     end
 
     before do
