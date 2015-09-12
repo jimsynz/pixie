@@ -235,6 +235,7 @@ defmodule Pixie.Backend do
   defp messages_by_client_id messages do
     Enum.reduce messages, %{}, fn
       (%{channel: channel_name}=message, cache)->
+        Pixie.Monitor.received_message message
         subscribers = Map.get subscribers_by_channel(messages), channel_name
         message = Pixie.ExtensionRegistry.outgoing message
         Enum.reduce subscribers, cache, fn

@@ -34,12 +34,14 @@ defmodule Pixie.Adapter.Plug do
   defp handle_request(%{method: "POST", params: %{"_json" => json}}=conn) when is_list(json) do
     data = Pixie.Protocol.handle json
     conn = put_resp_content_type conn, "application/json"
+    Enum.each data, fn(m)-> Pixie.Monitor.delivered_message m end
     send_resp conn, 200, Poison.encode! data
   end
 
   defp handle_request %{method: "POST", params: %{"message" => json}}=conn do
     data = Pixie.Protocol.handle json
     conn = put_resp_content_type conn, "application/json"
+    Enum.each data, fn(m)-> Pixie.Monitor.delivered_message m end
     send_resp conn, 200, Poison.encode! data
   end
 
@@ -53,6 +55,7 @@ defmodule Pixie.Adapter.Plug do
     if Regex.match? @valid_jsonp_callback, jsonp do
       json  = Poison.decode! json
       data = Pixie.Protocol.handle json
+      Enum.each data, fn(m)-> Pixie.Monitor.delivered_message m end
       data = Poison.encode! data
 
       data = "/**/#{jsonp}(#{data});"

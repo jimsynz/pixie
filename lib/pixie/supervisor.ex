@@ -9,7 +9,8 @@ defmodule Pixie.Supervisor do
 
     children = [
       worker(Pixie.ExtensionRegistry, [Pixie.configured_extensions]),
-      worker(Pixie.Backend, [backend_name, backend_options]),
+      worker(Pixie.Monitor, [Pixie.configured_monitors]),
+      supervisor(Pixie.Backend, [backend_name, backend_options]),
       supervisor(Pixie.LocalSubscriptionSupervisor, [])
     ]
 

@@ -3,6 +3,7 @@ defmodule Pixie.Backend.Redis do
   use Supervisor
   import Pixie.Utils.Backend
   require Logger
+  alias Pixie.Monitor
 
   @default_id_length 32
   @pool_size 5
@@ -39,7 +40,7 @@ defmodule Pixie.Backend.Redis do
 
   def create_client do
     {client_id, pid} = __MODULE__.Clients.create
-    Logger.info "[#{client_id}]: Client created."
+    Monitor.created_client client_id
     {client_id, pid}
   end
 
@@ -58,9 +59,11 @@ defmodule Pixie.Backend.Redis do
   def subscribe client_id, channel_name do
     unless __MODULE__.Channels.exists? channel_name do
       __MODULE__.Channels.create channel_name
+      Monitor.created_channel channel_name
     end
     __MODULE__.ClientSubscriptions.subscribe client_id, channel_name
     __MODULE__.ChannelSubscriptions.subscribe channel_name, client_id
+    Monitor.client_subscribed client_id, channel_name
     Logger.info "[#{client_id}]: Subscribed #{channel_name}"
   end
 
@@ -117,14 +120,17 @@ defmodule Pixie.Backend.Redis do
     __MODULE__.Namespaces.release_namespace client_id
     Logger.debug "[#{client_id}]: Unsubscribed from #{Enum.count subs} channels"
     Logger.info "[#{client_id}]: Client destroyed: #{reason}"
+    Monitor.destroyed_client client_id
     __MODULE__.Clients.destroy client_id
   end
 
   defp do_unsubscribe client_id, channel_name do
     __MODULE__.ClientSubscriptions.unsubscribe client_id, channel_name
     __MODULE__.ChannelSubscriptions.unsubscribe channel_name, client_id
+    Pixie.Monitor.client_unsubscribed client_id, channel_name
     if __MODULE__.ChannelSubscriptions.subscriber_count(channel_name) == 0 do
       __MODULE__.Channels.destroy channel_name
+      Pixie.Monitor.destroyed_channel channel_name
     end
   end
 end

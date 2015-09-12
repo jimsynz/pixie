@@ -150,6 +150,13 @@ defmodule Pixie do
   end
 
   @doc """
+  Returns a list of configured event monitors for use by `Pixie.Monitor`.
+  """
+  def configured_monitors do
+    Application.get_env(:pixie, :monitors, [])
+  end
+
+  @doc """
   Returns a list of the currently enabled transports.
   This can be configured with:
 

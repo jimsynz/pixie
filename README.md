@@ -39,7 +39,11 @@ Also to the `application` section of your `mix.exs` file:
 ```elixir
 def application do
   [
-    applications: [ ... :pixie ]
+    applications: [
+      # ...
+      :pixie,
+      # ...
+    ]
   ]
 end
 ```
@@ -93,6 +97,13 @@ config :pixie, :subscribe_immediately, false
 # Add extensions to be loaded at startup:
 config :pixie, :extensions, [My.Extension.Module.Name]
 
+# Add monitors to be loaded at startup:
+config :pixie, :monitors, [
+  My.Monitor.Module.Name,
+  # ... or ...
+  {My.Monitor.Module.Name, [some_arg]}
+]
+
 # Explicitly configure transports available to clients:
 config :pixie, :enabled_transports, ~w| long-polling cross-origin-long-polling callback-polling websocket |
 ```
@@ -115,6 +126,40 @@ config :myapp, MyApp.Endpoint,
 ```
 
 Obviously, you can change `"/pixie"` to any path you wish.
+
+### Sending messages from the server
+
+You can publish messages from within the server using `Pixie.publish`.
+
+```elixir
+Pixie.publish "/my/channel", %{message: "Pixie is awesome!"}
+```
+
+### Receiving messages from the server
+
+You can subscribe to a channel and receive messages on that channel using
+`Pixie.subscribe`.
+
+```elixir
+{:ok, pid} = Pixie.subscribe "/my/channel", fn (message, _pid)->
+  IO.puts "Received message: #{inspect message}"
+end
+```
+
+A separate worker process is created for each subscription, and it's pid is
+both returned from the `subscribe` call, but also passed as the second argument
+into the callback function, which means that you can do things like receive a
+single message, then unsubscribe:
+
+```elixir
+Pixie.subscribe "/only_one_message", fn(message, pid)->
+  IO.puts "Received message: #{inspect message}"
+  Pixie.unsubscribe pid
+end
+```
+
+Either way, you can use `Pixie.unsubscribe pid` to unsubscribe and terminate
+the subscription process.
 
 ### Writing extensions
 
@@ -156,39 +201,52 @@ Pixie.ExtensionRegistry.register MyExtension
 Pixie.ExtensionRegistry.unregister MyExtension
 ```
 
-### Sending messages from the server
+### Writing Monitors
 
-You can publish messages from within the server using `Pixie.publish`.
+Pixie provides monitoring functionality which allows you to subscribe to events
+which are happennings in the system.
+
+Provided events are:
+
+  - Client created.
+  - Client destroyed.
+  - Channel created.
+  - Channel destroyed.
+  - Client subscribed to channel.
+  - Client unsubscribed to channel.
+  - Message received for publication.
+  - Message delivered to receiving client.
+
+All events also receive a [Timex](https://hex.pm/packages/timex) timestamp
+recording the time at which they were generated - as there are potentially
+a lot of them and they may sit in a process mailbox for some time.
+
+You can use the `Pixie.Monitor` behaviour to define your event handler:
 
 ```elixir
-Pixie.publish "/my/channel", %{message: "Pixie is awesome!"}
-```
+defmodule MyMonitor do
+  use Pixie.Monitor
 
-### Receiving messages from the server
+  def created_channel channel_name, at do
+    Logger.info "Channel \#\{channel_name} created at \#\{format at}")}"
+  end
 
-You can subscribe to a channel and receive messages on that channel using
-`Pixie.subscribe`.
+  def destroyed_channel channel_name, at do
+    Logger.info "Channel \#\{channel_name} destroyed at \#\{format at}")}"
+  end
 
-```elixir
-{:ok, pid} = Pixie.subscribe "/my/channel", fn (message, _pid)->
-  IO.puts "Received message: #{inspect message}"
+  defp format timestamp do
+    timestamp
+      |> Date.from(:timestamp)
+      |> DateFormat.format!("{UNIX}")
+  end
 end
 ```
 
-A separate worker process is created for each subscription, and it's pid is
-both returned from the `subscribe` call, but also passed as the second argument
-into the callback function, which means that you can do things like receive a
-single message, then unsubscribe:
+Or you can use your own `GenEvent` handler, if the monitor API doesn't work
+for you.
 
-```elixir
-Pixie.subscribe "/only_one_message", fn(message, pid)->
-  IO.puts "Received message: #{inspect message}"
-  Pixie.unsubscribe pid
-end
-```
-
-Either way, you can use `Pixie.unsubscribe pid` to unsubscribe and terminate
-the subscription process.
+You can find more information in the [documentation](http://hexdocs.pm/pixie/overview.html).
 
 ## Running the tests
 
