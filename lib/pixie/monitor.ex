@@ -15,11 +15,11 @@ defmodule Pixie.Monitor do
     use Pixie.Monitor
 
     def created_channel channel_name, at do
-      Logger.info "Channel \#\{channel_name} created at \#\{format at}")}"
+      Logger.info "Channel \#\{channel_name} created at \#\{format at}"
     end
 
     def destroyed_channel channel_name, at do
-      Logger.info "Channel \#\{channel_name} destroyed at \#\{format at}")}"
+      Logger.info "Channel \#\{channel_name} destroyed at \#\{format at}"
     end
 
     defp format timestamp do
