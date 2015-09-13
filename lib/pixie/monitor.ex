@@ -158,7 +158,7 @@ defmodule Pixie.Monitor do
   Called by the backend when a client is destroyed, either by an expicit
   protocol disconnect or for a system generated reason, such as a timeout.
   """
-  def destroyed_client client_id, reason // "Unknown reason" do
+  def destroyed_client client_id, reason \\ "Unknown reason" do
     GenEvent.notify __MODULE__, {:destroyed_client, [client_id, reason, Time.now]}
   end
 
