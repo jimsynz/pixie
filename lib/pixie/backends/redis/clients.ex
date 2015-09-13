@@ -1,5 +1,4 @@
 defmodule Pixie.Backend.Redis.Clients do
-  require Logger
   import Pixie.Backend.Redis.Connection
 
   alias Timex.Time

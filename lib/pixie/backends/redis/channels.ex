@@ -1,18 +1,15 @@
 defmodule Pixie.Backend.Redis.Channels do
-  require Logger
   import Pixie.Utils.Backend
   import Pixie.Backend.Redis.Connection
 
   def create channel_name do
     term = channel_name |> compile_channel_matcher |> :erlang.term_to_binary
     {:ok, _} = query ["HSET", key, channel_name, term]
-    Logger.info "[#{channel_name}]: Channel created."
     :ok
   end
 
   def destroy channel_name do
     {:ok, _} = query ["HDEL", key, channel_name]
-    Logger.info "[#{channel_name}]: Channel destroyed."
     :ok
   end
 

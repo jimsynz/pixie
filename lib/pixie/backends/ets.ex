@@ -2,7 +2,7 @@ defmodule Pixie.Backend.ETS do
   use Pixie.Backend
   use Supervisor
   import Supervisor.Spec
-  require Logger
+  alias Pixie.Monitor
 
   @moduledoc """
   This is the default persistence backend for Pixie, which stores data in
@@ -40,7 +40,7 @@ defmodule Pixie.Backend.ETS do
 
   def create_client do
     {client_id, pid} = __MODULE__.Clients.create
-    Logger.info "[#{client_id}]: Client created."
+    Monitor.created_client client_id
     {client_id, pid}
   end
 
@@ -55,15 +55,17 @@ defmodule Pixie.Backend.ETS do
   end
 
   def subscribe client_id, channel_name do
-    __MODULE__.Channels.create channel_name
+    unless __MODULE__.Channels.exists? channel_name do
+      __MODULE__.Channels.create channel_name
+      Monitor.created_channel channel_name
+    end
     __MODULE__.ClientSubscriptions.subscribe client_id, channel_name
     __MODULE__.ChannelSubscriptions.subscribe channel_name, client_id
-    Logger.info "[#{client_id}]: Subscribed #{channel_name}"
+    Monitor.client_subscribed client_id, channel_name
   end
 
   def unsubscribe client_id, channel_name do
     do_unsubscribe client_id, channel_name
-    Logger.info "[#{client_id}]: Unsubscribed #{channel_name}"
   end
 
   def subscribed_to client_id do
@@ -112,16 +114,17 @@ defmodule Pixie.Backend.ETS do
     Enum.each subs, fn(channel)->
       do_unsubscribe client_id, channel
     end
-    Logger.debug "[#{client_id}]: Unsubscribed from #{Enum.count subs} channels"
-    Logger.info "[#{client_id}]: Client destroyed: #{reason}"
+    Monitor.destroyed_client client_id
     __MODULE__.Clients.destroy client_id
   end
 
   defp do_unsubscribe client_id, channel_name do
     __MODULE__.ClientSubscriptions.unsubscribe client_id, channel_name
     __MODULE__.ChannelSubscriptions.unsubscribe channel_name, client_id
+    Pixie.Monitor.client_unsubscribed client_id, channel_name
     if __MODULE__.ChannelSubscriptions.subscriber_count channel_name == 0 do
       __MODULE__.Channels.destroy channel_name
+      Pixie.Monitor.destroyed_channel channel_name
     end
   end
 end

@@ -42,7 +42,7 @@ defmodule Pixie.Monitor do
       end
 
       def created_client(_client_id, _at), do: :ok
-      def destroyed_client(_client_id, _at), do: :ok
+      def destroyed_client(_client_id, _reason, _at), do: :ok
       def created_channel(_channel_name, _at), do: :ok
       def destroyed_channel(_channel_name, _at), do: :ok
       def client_subscribed(_client_id, _channel_name, _at), do: :ok
@@ -52,7 +52,7 @@ defmodule Pixie.Monitor do
 
       defoverridable [
         created_client: 2,
-        destroyed_client: 2,
+        destroyed_client: 3,
         created_channel: 2,
         destroyed_channel: 2,
         client_subscribed: 3,
@@ -72,7 +72,7 @@ defmodule Pixie.Monitor do
   Called when a client is destroyed - either by an explicit disconnect request
   from the client, or by a system generated timeout.
   """
-  defcallback destroyed_client(client_id :: binary, at :: {megasecs :: integer, seconds :: integer, microsecs :: integer}) :: atom
+  defcallback destroyed_client(client_id :: binary, reason :: binary | atom, at :: {megasecs :: integer, seconds :: integer, microsecs :: integer}) :: atom
 
   @doc """
   Called when a new channel is created - this happens when a client subscribes
@@ -158,8 +158,8 @@ defmodule Pixie.Monitor do
   Called by the backend when a client is destroyed, either by an expicit
   protocol disconnect or for a system generated reason, such as a timeout.
   """
-  def destroyed_client client_id do
-    GenEvent.notify __MODULE__, {:destroyed_client, [client_id, Time.now]}
+  def destroyed_client client_id, reason // "Unknown reason" do
+    GenEvent.notify __MODULE__, {:destroyed_client, [client_id, reason, Time.now]}
   end
 
   @doc """

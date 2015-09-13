@@ -2,7 +2,6 @@ defmodule Pixie.Backend.Redis do
   use Pixie.Backend
   use Supervisor
   import Pixie.Utils.Backend
-  require Logger
   alias Pixie.Monitor
 
   @default_id_length 32
@@ -64,12 +63,10 @@ defmodule Pixie.Backend.Redis do
     __MODULE__.ClientSubscriptions.subscribe client_id, channel_name
     __MODULE__.ChannelSubscriptions.subscribe channel_name, client_id
     Monitor.client_subscribed client_id, channel_name
-    Logger.info "[#{client_id}]: Subscribed #{channel_name}"
   end
 
   def unsubscribe client_id, channel_name do
     do_unsubscribe client_id, channel_name
-    Logger.info "[#{client_id}]: Unsubscribed #{channel_name}"
   end
 
   def subscribed_to client_id do
@@ -118,9 +115,7 @@ defmodule Pixie.Backend.Redis do
     end
     __MODULE__.MessageQueue.destroy client_id
     __MODULE__.Namespaces.release_namespace client_id
-    Logger.debug "[#{client_id}]: Unsubscribed from #{Enum.count subs} channels"
-    Logger.info "[#{client_id}]: Client destroyed: #{reason}"
-    Monitor.destroyed_client client_id
+    Monitor.destroyed_client client_id, reason
     __MODULE__.Clients.destroy client_id
   end
 

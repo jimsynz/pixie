@@ -1,5 +1,4 @@
 defmodule Pixie.Backend.ETS.Clients do
-  require Logger
   @moduledoc """
   This process manages the generation and removal of client processes.
   """

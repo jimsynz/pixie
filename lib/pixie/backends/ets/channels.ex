@@ -1,5 +1,4 @@
 defmodule Pixie.Backend.ETS.Channels do
-  require Logger
   use GenServer
   import Pixie.Utils.Backend
 
@@ -47,13 +46,11 @@ defmodule Pixie.Backend.ETS.Channels do
   def handle_cast {:create, channel_name}, table do
     channel_matcher = compile_channel_matcher(channel_name)
     :ets.insert __MODULE__, {channel_name, channel_matcher}
-    Logger.info "[#{channel_name}]: Channel created."
     {:noreply, table}
   end
 
   def handle_cast {:destroy, channel_name}, table do
     :ets.delete table, channel_name
-    Logger.info "[#{channel_name}]: Channel destroyed."
     {:noreply, table}
   end
 end
