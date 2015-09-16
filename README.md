@@ -4,17 +4,18 @@
 [![Hex.pm](https://img.shields.io/hexpm/v/espec.svg)](https://hex.pm/packages/pixie)
 
 
-*Pixie is a [Faye](http://faye.jcoglan.com) compatible Bayeux implementation*
+## Pixie is a [Faye](http://faye.jcoglan.com) compatible Bayeux implementation
 
-*WARNING: Pixie is under heavy development.*
-
-Pixie is inspired by [Faye](http://faye.jcoglan.com/) and was originally planned as a port, but has
-diverged significantly as I've learned the Erlang way of modelling these
-sorts of problems.
+Pixie is inspired by [Faye](http://faye.jcoglan.com/) and was originally
+planned as a port, but has diverged significantly as I've learned the Erlang
+way of modelling these sorts of problems.
 
 # Heroku Add-on
 
-If you're planning on running Faye on Heroku you're probably going to have a bad time.  Take a look at [MessageRocket](https://messagerocket.co/) as an alternative, and help support the author to maintain more great open source projects.
+If you're planning on running Faye on Heroku you're probably going to have a
+bad time.  Take a look at [MessageRocket](https://messagerocket.co/) as an
+alternative, and help support the author to maintain more great open source
+projects.
 
 ## License
 
@@ -52,8 +53,13 @@ Then use `mix deps.get` to download Pixie from [hex](https://hex.pm/).
 
 ## Status
 
-Pixie is still under heavy development, however it works and is compatible
-with the [Faye](http://faye.jcoglan.com/) JavaScript and Ruby clients.
+Pixie is still pre 1.0, however it works and is compatible with the
+popular [Faye](http://faye.jcoglan.com/) JavaScript and Ruby clients.
+
+Pixie is used in production at [MessageRocket](https://messagerocket.co/) to
+handle relatively large message loads.  Development is mostly guided by the
+needs of MessageRocket, however pull requests and issues are gratefully
+received.
 
 ## Features
 
