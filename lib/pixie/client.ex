@@ -2,7 +2,7 @@ defmodule Pixie.Client do
   use GenServer
   require Logger
 
-  defstruct id: nil, transport_name: nil
+  defstruct id: nil, transport_name: nil, metadata: nil
   alias __MODULE__
 
   def start_link id do
@@ -42,6 +42,7 @@ defmodule Pixie.Client do
       nil ->
         Pixie.Backend.queue_for client_id, messages
       pid ->
+        GenServer.cast pid, :ping
         Pixie.Transport.enqueue pid, messages
     end
     :ok
@@ -60,6 +61,20 @@ defmodule Pixie.Client do
   """
   def ping client_id do
     GenServer.cast via(client_id), :ping
+  end
+
+  @doc """
+  Store arbitrary metadata about a client
+  """
+  def set_meta client_id, metadata do
+    GenServer.call via(client_id), {:set_meta, metadata}
+  end
+
+  @doc """
+  Retrieve metadata about a client
+  """
+  def get_meta client_id do
+    GenServer.call via(client_id), :get_meta
   end
 
   @doc """
@@ -84,6 +99,14 @@ defmodule Pixie.Client do
     {:ok, transport} = Pixie.TransportSupervisor.replace_child transport_name, id
     do_set_transport id, transport, transport_name
     {:reply, transport, %{state | transport_name: transport_name}, idle_timeout}
+  end
+
+  def handle_call({:set_meta, metadata}, _from, state) do
+    {:reply, :ok, %{state | metadata: metadata}}
+  end
+
+  def handle_call(:get_meta, _from, %{metadata: metadata}=state) do
+    {:reply, metadata, state}
   end
 
   @doc """
