@@ -42,7 +42,7 @@ defmodule Pixie.Client do
       nil ->
         Pixie.Backend.queue_for client_id, messages
       pid ->
-        GenServer.cast pid, :ping
+        GenServer.cast via(client_id), :ping
         Pixie.Transport.enqueue pid, messages
     end
     :ok
