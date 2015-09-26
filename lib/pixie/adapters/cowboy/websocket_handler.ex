@@ -48,7 +48,7 @@ defmodule Pixie.Adapter.Cowboy.WebsocketHandler do
     {first, rest} = Enum.split(messages, @max_messages_per_frame)
     Enum.each first, fn(m) -> Pixie.Monitor.delivered_message m end
     send self, {:deliver, rest}
-    {:reply, {:text, Poison.encode!(first)}, req, state}
+    {:reply, {:text, Pixie.JsonEncoderCache.encode!(first)}, req, state}
   end
 
   def websocket_info :close, req, state do

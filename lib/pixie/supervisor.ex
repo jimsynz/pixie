@@ -10,6 +10,7 @@ defmodule Pixie.Supervisor do
     children = [
       worker(Pixie.ExtensionRegistry, [Pixie.configured_extensions]),
       worker(Pixie.Monitor, [Pixie.configured_monitors]),
+      worker(Pixie.JsonEncoderCache, [])
     ]
 
     children = case Mix.env do
