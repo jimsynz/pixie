@@ -18,7 +18,7 @@ defmodule Pixie.Mixfile do
 
   defp package do
     [
-      contributors: ["James Harton"],
+      maintainers: ["James Harton"],
       licenses: ["MIT"],
       links: %{
         "bitbucket"     => "https://bitbucket.org/messagerocket/pixie",
