@@ -1,5 +1,4 @@
 defmodule Pixie.Backend do
-  use Behaviour
   @default_id_length 32
   @max_messages_per_publish 256
 
@@ -23,72 +22,72 @@ defmodule Pixie.Backend do
   @doc """
   Used to start your Backend's process.
   """
-  defcallback start_link(options :: any) :: {atom, pid}
+  @callback start_link(options :: any) :: {atom, pid}
 
   @doc """
   Used to create a unique identifier for client ID's, etc.
   """
-  defcallback generate_namespace(length :: integer) :: String.t
+  @callback generate_namespace(length :: integer) :: String.t
 
   @doc """
   Used to release a unique identifier that's no longer in use.
   """
-  defcallback release_namespace(namespace :: String.t) :: atom
+  @callback release_namespace(namespace :: String.t) :: atom
 
   @doc """
   Create a new `Pixie.Client` process.
   """
-  defcallback create_client :: {client_id :: String.t, pid}
+  @callback create_client :: {client_id :: String.t, pid}
 
   @doc """
   Retrieve the process of a client by it's ID.
   """
-  defcallback get_client(client_id :: String.t) :: pid
+  @callback get_client(client_id :: String.t) :: pid
 
   @doc """
   Destroy a client.
   """
-  defcallback destroy_client(client_id :: String.t, reason :: atom)
+  @callback destroy_client(client_id :: String.t, reason :: atom) :: atom
 
   @doc """
   Subscribe a client to a channel
   """
-  defcallback subscribe(client_id :: String.t, channel_name :: String.t) :: atom
+  @callback subscribe(client_id :: String.t, channel_name :: String.t) :: atom
 
   @doc """
   Unsubscribe a client from a channel
   """
-  defcallback unsubscribe(client_id :: String.t, channel_name :: String.t | [String.t]) :: atom
+  @callback unsubscribe(client_id :: String.t, channel_name :: String.t | [String.t]) :: atom
 
   @doc """
   Retrieve the unique subscribers of channels matching the channel pattern.
   """
-  defcallback subscribers_of(channel_pattern :: String.t) :: [pid]
+  @callback subscribers_of(channel_pattern :: String.t) :: [pid]
 
   @doc """
   Retrieve the channels that the client is subscribed to.
   """
-  defcallback subscribed_to(client_id :: String.t) :: [String.t]
+  @callback subscribed_to(client_id :: String.t) :: [String.t]
 
   @doc """
   Check whether the client is subscribed to the mentioned channel.
   """
-  defcallback client_subscribed?(client_id :: String.t, channel_name :: String.t) :: :atom
+  @callback client_subscribed?(client_id :: String.t, channel_name :: String.t) :: :atom
 
   @doc """
   Temporarily store messages for a client if it's transport is unconnected.
   """
-  defcallback queue_for(client_id :: String.t, messages :: [map]) :: atom
+  @callback queue_for(client_id :: String.t, messages :: [map]) :: atom
 
   @doc """
   Dequeue any stored messages for a given client.
   """
-  defcallback dequeue_for(client_id :: String.t) :: [map]
+  @callback dequeue_for(client_id :: String.t) :: [map]
 
   @doc """
   Deliver messages to clients, local or otherwise.
   """
-  defcallback deliver(client_id :: String.t, messages :: list) :: atom
+  @callback deliver(client_id :: String.t, messages :: list) :: atom
 
   @doc """
   Called by the Pixie supervisor to start the selected backend.

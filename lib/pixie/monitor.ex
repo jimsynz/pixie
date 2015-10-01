@@ -1,6 +1,5 @@
 defmodule Pixie.Monitor do
   use Timex
-  use Behaviour
 
   @moduledoc """
   Allows you to monitor various events within Pixie.
@@ -66,35 +65,35 @@ defmodule Pixie.Monitor do
   @doc """
   Called when a new client is created during protocol handshake.
   """
-  defcallback created_client(client_id :: binary, at :: {megasecs :: integer, seconds :: integer, microsecs :: integer}) :: atom
+  @callback created_client(client_id :: binary, at :: {megasecs :: integer, seconds :: integer, microsecs :: integer}) :: atom
 
   @doc """
   Called when a client is destroyed - either by an explicit disconnect request
   from the client, or by a system generated timeout.
   """
-  defcallback destroyed_client(client_id :: binary, reason :: binary | atom, at :: {megasecs :: integer, seconds :: integer, microsecs :: integer}) :: atom
+  @callback destroyed_client(client_id :: binary, reason :: binary | atom, at :: {megasecs :: integer, seconds :: integer, microsecs :: integer}) :: atom
 
   @doc """
   Called when a new channel is created - this happens when a client subscribes
   to it for the first time.
   """
-  defcallback created_channel(channel_name :: binary, at :: {megasecs :: integer, seconds :: integer, microsecs :: integer}) :: atom
+  @callback created_channel(channel_name :: binary, at :: {megasecs :: integer, seconds :: integer, microsecs :: integer}) :: atom
 
   @doc """
   Called when a channel is destroyed - this happens when the last client
   unsubscribes from it.
   """
-  defcallback destroyed_channel(channel_name :: binary, at :: {megasecs :: integer, seconds :: integer, microsecs :: integer}) :: atom
+  @callback destroyed_channel(channel_name :: binary, at :: {megasecs :: integer, seconds :: integer, microsecs :: integer}) :: atom
 
   @doc """
   Called when a client subscribes to a channel.
   """
-  defcallback client_subscribed(client_id :: binary, channel_name :: binary, at :: {megasecs :: integer, seconds :: integer, microsecs :: integer}) :: atom
+  @callback client_subscribed(client_id :: binary, channel_name :: binary, at :: {megasecs :: integer, seconds :: integer, microsecs :: integer}) :: atom
 
   @doc """
   Called when a client unsubscribes from a channel.
   """
-  defcallback client_unsubscribed(client_id :: binary, channel_name :: binary, at :: {megasecs :: integer, seconds :: integer, microsecs :: integer}) :: atom
+  @callback client_unsubscribed(client_id :: binary, channel_name :: binary, at :: {megasecs :: integer, seconds :: integer, microsecs :: integer}) :: atom
 
   @doc """
   Called when a message is received with the ID of the message.
@@ -107,7 +106,7 @@ defmodule Pixie.Monitor do
     - If the message was generated on the server (ie via `Pixie.publish/2`) then
       the Client ID is likely to be `nil`.
   """
-  defcallback received_message(client_id :: binary, message_id :: binary, at :: {megasecs :: integer, seconds :: integer, microsecs :: integer}) :: atom
+  @callback received_message(client_id :: binary, message_id :: binary, at :: {megasecs :: integer, seconds :: integer, microsecs :: integer}) :: atom
 
   @doc """
   Called when a message is delivered to a client.
@@ -124,7 +123,7 @@ defmodule Pixie.Monitor do
       as one message published to a channel may be relayed to thousands of
       receivers.
   """
-  defcallback delivered_message(client_id :: binary, message_id :: binary, at :: {megasecs :: integer, seconds :: integer, microsecs :: integer}) :: atom
+  @callback delivered_message(client_id :: binary, message_id :: binary, at :: {megasecs :: integer, seconds :: integer, microsecs :: integer}) :: atom
 
   def start_link handlers do
     {:ok, pid} = GenEvent.start_link name: __MODULE__

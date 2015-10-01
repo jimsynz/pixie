@@ -1,5 +1,4 @@
 defmodule Pixie.Extension do
-  use Behaviour
   @moduledoc """
   Used to implement Bayeux extensions, which can be used to filter or change
   incoming messages and the responses sent back to the client.
@@ -61,7 +60,7 @@ defmodule Pixie.Extension do
   to `nil`, likewise if you want to stop a response being sent to the client.
   You must *always* return a Pixie.Event struct from `handle/1`.
   """
-  defcallback incoming(event :: Pixie.Event.t) :: Pixie.Event.t
+  @callback incoming(event :: Pixie.Event.t) :: Pixie.Event.t
 
   @doc """
   Can be used to modify an outgoing message before it is passed to the channel
@@ -70,5 +69,5 @@ defmodule Pixie.Extension do
   If you wish to stop this message being delivered then return `nil` otherwise
   you must always return a message back to the caller.
   """
-  defcallback outgoing(message :: Pixie.Message.Publish.t) :: Pixie.Message.Publish.t
+  @callback outgoing(message :: Pixie.Message.Publish.t) :: Pixie.Message.Publish.t
 end

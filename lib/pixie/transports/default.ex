@@ -1,6 +1,4 @@
 defmodule Pixie.Transport.Default do
-  use Behaviour
-
   defmacro __using__(_opts) do
     quote do
       use GenServer
@@ -95,9 +93,9 @@ defmodule Pixie.Transport.Default do
   end
 
   @doc false
-  defcallback start_link() :: {atom, pid}
+  @callback start_link() :: {atom, pid}
 
-  defcallback enqueue_messages(messages :: [map], {from :: pid | nil, queued_messages :: [map]}) :: {nil | pid, list}
+  @callback enqueue_messages(messages :: [map], {from :: pid | nil, queued_messages :: [map]}) :: {nil | pid, list}
 
-  defcallback dequeue_messages({waiting :: pid | nil, queued_messages :: [map]}) :: {nil, list}
+  @callback dequeue_messages({waiting :: pid | nil, queued_messages :: [map]}) :: {nil, list}
 end
