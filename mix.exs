@@ -36,7 +36,7 @@ defmodule Pixie.Mixfile do
 
   def application do
     [
-      applications: [:logger, :crypto, :cowboy, :plug, :gproc, :con_cache],
+      applications: [:logger, :crypto, :cowboy, :plug, :gproc, :con_cache, :tzdata],
       mod: {Pixie, []}
     ]
   end

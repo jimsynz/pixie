@@ -7,9 +7,7 @@
 
 
 # As per [1] it is optional for a server to handle publishes from unconnected or
-# unsubscribed clients.  I've opted to enforce that only subscribed clients can
-# publish to a channel.  I'm open to changing this if you have a good argument
-# I'm happy to hear it.  Send a PR.
+# unsubscribed clients.
 #
 # 1: http://svn.cometd.org/trunk/bayeux/bayeux.html#toc_63
 
@@ -35,13 +33,9 @@ defmodule Pixie.Publish do
     end
   end
 
-  def handle(%{client_id: client_id, response: r}=event) do
+  def handle event do
     %{message: %{channel: channel_name}}=event = Pixie.ExtensionRegistry.incoming event
-    if Pixie.Backend.client_subscribed? client_id, channel_name do
-      publish event
-    else
-      %{event | response: Error.publish_failed(r, channel_name)}
-    end
+    publish event
   end
 
   defp publish(%{message: nil}=event), do: event
