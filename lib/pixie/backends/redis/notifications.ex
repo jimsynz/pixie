@@ -12,7 +12,7 @@ defmodule Pixie.Backend.Redis.Notifications do
 
   def init opts do
     redis_url = Keyword.get(opts, :redis_url)
-    c = Exredis.ConnectionString.parse redis_url
+    c = Exredis.Config.parse redis_url
     {:ok, pid} = Exredis.Sub.start_link c.host, c.port, c.password
     me = self
     Exredis.Sub.subscribe pid, trigger_key, fn(msg)->

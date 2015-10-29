@@ -7,7 +7,7 @@ defmodule Pixie.Backend.Redis.Connection do
 
   def init redis_url do
     Process.flag :trap_exit, true
-    config = Exredis.ConnectionString.parse redis_url
+    config = Exredis.Config.parse redis_url
     {:ok, {:disconnected, config}}
   end
 

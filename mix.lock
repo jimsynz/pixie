@@ -10,7 +10,7 @@
   "ex_minimatch": {:hex, :ex_minimatch, "0.0.1"},
   "exactor": {:hex, :exactor, "2.2.0"},
   "exprintf": {:hex, :exprintf, "0.1.6"},
-  "exredis": {:hex, :exredis, "0.2.0"},
+  "exredis": {:hex, :exredis, "0.2.2"},
   "gproc": {:hex, :gproc, "0.3.1"},
   "hackney": {:hex, :hackney, "1.3.2"},
   "idna": {:hex, :idna, "1.0.2"},
