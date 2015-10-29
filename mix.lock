@@ -11,7 +11,7 @@
   "exactor": {:hex, :exactor, "2.2.0"},
   "exprintf": {:hex, :exprintf, "0.1.6"},
   "exredis": {:hex, :exredis, "0.2.2"},
-  "gproc": {:hex, :gproc, "0.3.1"},
+  "gproc": {:hex, :gproc, "0.5.0"},
   "hackney": {:hex, :hackney, "1.3.2"},
   "idna": {:hex, :idna, "1.0.2"},
   "iso8601": {:git, "git://github.com/seansawyer/erlang_iso8601.git", "7b5015419774d7b27f37c088d5a33d23ec84acc4", [tag: "1.1.1"]},
