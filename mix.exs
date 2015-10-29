@@ -52,7 +52,7 @@ defmodule Pixie.Mixfile do
       {:plug,          "~> 1.0.0"},
       {:exredis,       "~> 0.2.0", optional: true},
       {:poolboy,       "~> 1.5.1"},
-      {:ex_doc,        "~> 0.8.4", optional: true},
+      {:ex_doc,        "~> 0.10", optional: true},
       {:gproc,         "~> 0.3.1"},
       {:con_cache,     "~> 0.9.0"}
     ]
