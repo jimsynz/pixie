@@ -28,8 +28,8 @@ defmodule PixieHandshakeSpec do
     end
 
     finally do
-      Application.put_env :pixie, :backend, __.old_config
-      Process.exit(__.pid, :normal)
+      Application.put_env :pixie, :backend, shared.old_config
+      Process.exit(shared.pid, :normal)
     end
 
     context "When passed a message with an incorrect version" do

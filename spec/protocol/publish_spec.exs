@@ -35,8 +35,8 @@ defmodule PixiePublishSpec do
     end
 
     finally do
-      Application.put_env :pixie, :backend, __.old_config
-      Process.exit(__.pid, :normal)
+      Application.put_env :pixie, :backend, shared.old_config
+      Process.exit(shared.pid, :normal)
     end
 
     describe "When sent a messages with no channel" do

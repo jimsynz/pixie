@@ -4,7 +4,7 @@
   "cowlib": {:hex, :cowlib, "1.0.1"},
   "eredis": {:hex, :eredis, "1.0.8"},
   "erlfaye": {:git, "git://github.com/antoniogarrote/erlfaye.git", "366227ac6c671e557cedb047c620e69ed3f94b3b", []},
-  "espec": {:hex, :espec, "0.7.2"},
+  "espec": {:hex, :espec, "0.8.1"},
   "ex_brace_expansion": {:hex, :ex_brace_expansion, "0.0.2"},
   "ex_doc": {:hex, :ex_doc, "0.10.0"},
   "ex_minimatch": {:hex, :ex_minimatch, "0.0.1"},

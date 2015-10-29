@@ -1,25 +1,25 @@
 defmodule PixieBackendExamples do
   use ESpec, shared: true
 
-  let :backend, do: __.backend
+  let :backend, do: shared.backend
 
   before do
     config = Application.get_env(:pixie, :backend)
     new_config = [
-      name: Module.split(__.backend) |> List.last
+      name: Module.split(shared.backend) |> List.last
     ]
     Application.put_env(:pixie, :backend, new_config)
-    {:ok, pid} = apply(__.backend, :start_link, [[]])
+    {:ok, pid} = apply(shared.backend, :start_link, [[]])
     {:ok, pid: pid, old_config: config}
   end
 
   finally do
-    Application.put_env(:pixie, :backend, __.old_config)
+    Application.put_env(:pixie, :backend, shared.old_config)
   end
 
   describe "start_link" do
     it "starts a new process" do
-      expect(__.pid).to be_pid
+      expect(shared.pid).to be_pid
     end
 
     it "registers itself as a named process" do
@@ -63,8 +63,8 @@ defmodule PixieBackendExamples do
       {:ok, client_id: client_id, client_pid: pid}
     end
 
-    let :client_id,  do: __.client_id
-    let :client_pid, do: __.client_pid
+    let :client_id,  do: shared.client_id
+    let :client_pid, do: shared.client_pid
 
     describe "get_client" do
 

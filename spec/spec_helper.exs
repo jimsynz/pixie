@@ -21,11 +21,11 @@ ESpec.configure fn(config) ->
    {:ok, []}
  end
 
- config.finally fn(__) ->
-  if Dict.has_key?(__, :pid) do
-    Process.unlink __.pid
-    Process.exit __.pid, :shutdown
-    PidWaiter.wait __.pid
+ config.finally fn(shared) ->
+  if Dict.has_key?(shared, :pid) do
+    Process.unlink shared.pid
+    Process.exit shared.pid, :shutdown
+    PidWaiter.wait shared.pid
   end
  end
 

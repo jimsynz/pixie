@@ -48,7 +48,7 @@ defmodule Pixie.Mixfile do
       {:secure_random, "~> 0.1"},
       {:ex_minimatch,  "~> 0.0.1"},
       {:timex,         "~> 0.19.2"},
-      {:espec,         "~> 0.7.0", only: :test},
+      {:espec,         "~> 0.8.1", only: :test},
       {:plug,          "~> 1.0.0"},
       {:exredis,       "~> 0.2.0", optional: true},
       {:poolboy,       "~> 1.5.1"},
