@@ -13,18 +13,19 @@ defmodule Pixie.Supervisor do
       worker(Pixie.JsonEncoderCache, [])
     ]
 
-    children = case Mix.env do
-      :test -> children
-      _ ->
-      children ++ [
-        supervisor(Pixie.Backend, [backend_name, backend_options]),
-        supervisor(Pixie.LocalSubscriptionSupervisor, [])
-      ]
+    children = case Application.get_env(:pixie, :start_backend, true) do
+      false -> children
+      true  -> children ++ [supervisor(Pixie.Backend, [backend_name, backend_options])]
+    end
+
+    children = case Application.get_env(:pixie, :start_subscriptions, true) do
+      false -> children
+      true  -> children ++ [supervisor(Pixie.LocalSubscriptionSupervisor, [])]
     end
 
     children = case Application.get_env(:pixie, :start_cowboy, false) do
-      true  -> [worker(Pixie.Server, []) | children]
       false -> children
+      true  -> [worker(Pixie.Server, []) | children]
     end
 
     children
