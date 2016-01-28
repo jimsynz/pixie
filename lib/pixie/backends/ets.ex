@@ -74,7 +74,7 @@ defmodule Pixie.Backend.ETS do
 
   def subscribers_of channel_pattern do
     __MODULE__.Channels.list
-      |> Enum.reduce HashSet.new, fn
+      |> Enum.reduce(HashSet.new, fn
         ({channel_name, matcher}, set) ->
           if channel_matches? matcher, channel_pattern do
             subscribers = __MODULE__.ChannelSubscriptions.get channel_name
@@ -83,7 +83,7 @@ defmodule Pixie.Backend.ETS do
           else
             set
           end
-      end
+      end)
   end
 
   def client_subscribed? client_id, channel_name do

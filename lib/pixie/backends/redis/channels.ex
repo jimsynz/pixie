@@ -26,9 +26,9 @@ defmodule Pixie.Backend.Redis.Channels do
 
   def list do
     {:ok, channels} = query ["HGETALL", key]
-    channels |> Enum.chunk(2) |> Enum.map fn
+    channels |> Enum.chunk(2) |> Enum.map(fn
       [key,val]-> {key, :erlang.binary_to_term val}
-    end
+    end)
   end
 
   defp key do
