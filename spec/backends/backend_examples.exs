@@ -14,6 +14,7 @@ defmodule PixieBackendExamples do
   end
 
   finally do
+    Process.exit shared.pid, :normal
     Application.put_env(:pixie, :backend, shared.old_config)
   end
 

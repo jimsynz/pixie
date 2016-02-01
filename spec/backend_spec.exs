@@ -5,7 +5,7 @@ defmodule PixieBackendSpec do
     context "When called with no arguments" do
       it "defaults to the Memory backend" do
         allow(Pixie.Backend.Memory).to accept(:start_link, fn(_)-> :FAKE end)
-        expect(Pixie.Backend.start_link).to eq(:FAKE)
+        expect(Pixie.Backend.start_link :Memory).to eq(:FAKE)
       end
     end
 
@@ -15,16 +15,14 @@ defmodule PixieBackendSpec do
         expect(Pixie.Backend.start_link :Foo).to eq(:FAKE2)
       end
     end
-
-    it "registers the backend as Pixie.Backend" do
-      allow(Pixie.Backend.Foo).to accept(:start_link, fn(opts)-> opts end)
-      expect(Pixie.Backend.start_link :Foo).to eq([name: Pixie.Backend])
-    end
   end
 
   describe "generate_namespace" do
-    before do: Pixie.Backend.start_link
-    finally do: Pixie.Backend.stop
+    before do
+      {:ok, pid} = Pixie.Backend.start_link :ETS
+      {:ok, pid: pid}
+    end
+    finally do: Process.exit shared.pid, :normal
 
     context "When called with no arguments" do
       it "defaults to a length of 32" do

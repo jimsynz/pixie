@@ -123,7 +123,7 @@ defmodule Pixie do
     - The subscription pid.
   """
   def subscribe channel_name, callback do
-    Pixie.LocalSubscriptionSupervisor.add_worker Pixie.LocalSubscription, {channel_name, callback}, [channel_name, callback]
+    Pixie.LocalSubscription.subscribe channel_name, callback
   end
 
   @doc """

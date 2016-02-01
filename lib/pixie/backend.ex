@@ -22,7 +22,7 @@ defmodule Pixie.Backend do
   @doc """
   Used to start your Backend's process.
   """
-  @callback start_link(options :: any) :: {atom, pid}
+  @callback start_link(backend_name :: atom, options :: list) :: {atom, pid}
 
   @doc """
   Used to create a unique identifier for client ID's, etc.
@@ -92,7 +92,7 @@ defmodule Pixie.Backend do
   @doc """
   Called by the Pixie supervisor to start the selected backend.
   """
-  def start_link name, options do
+  def start_link name, options \\ [] do
     module = Module.concat [:Pixie, :Backend, name]
     apply(module, :start_link, [options])
   end
