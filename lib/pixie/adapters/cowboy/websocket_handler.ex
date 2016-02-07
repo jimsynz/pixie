@@ -45,10 +45,15 @@ defmodule Pixie.Adapter.Cowboy.WebsocketHandler do
   end
 
   def websocket_info {:deliver, messages}, req, state do
-    {first, rest} = Enum.split(messages, @max_messages_per_frame)
-    Enum.each first, fn(m) -> Pixie.Monitor.delivered_message m end
-    send self, {:deliver, rest}
-    {:reply, {:text, Pixie.JsonEncoderCache.encode!(first)}, req, state}
+    {to_deliver, rest} = Enum.split(messages, @max_messages_per_frame)
+
+    json = to_deliver
+    |> monitor_deliveries
+    |> Pixie.JsonEncoderCache.encode!
+
+    deliver_messages rest
+
+    {:reply, {:text, json}, req, state}
   end
 
   def websocket_info :close, req, state do
@@ -61,5 +66,21 @@ defmodule Pixie.Adapter.Cowboy.WebsocketHandler do
 
   def websocket_terminate _msg, _req, _state do
     :ok
+  end
+
+  defp monitor_deliveries to_deliver do
+    Enum.each to_deliver, fn(m)->
+      Pixie.Monitor.delivered_message m
+    end
+
+    to_deliver
+  end
+
+  defp deliver_messages [] do
+    nil
+  end
+
+  defp deliver_messages to_deliver do
+    send self, {:deliver, to_deliver}
   end
 end
