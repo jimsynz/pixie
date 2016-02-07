@@ -8,7 +8,10 @@ defmodule Pixie.JsonEncoderCache do
   end
 
   def encode!(terms) when is_list(terms) do
-    Enum.map terms, fn(term)-> encode! term end
+    terms = Enum.map terms, fn(term) -> encode! term end
+
+    json = Enum.join(terms, ",")
+    "[" <> json <> "]"
   end
 
   def encode! term do
