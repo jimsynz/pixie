@@ -219,7 +219,7 @@ Provided events are:
   - Channel created.
   - Channel destroyed.
   - Client subscribed to channel.
-  - Client unsubscribed to channel.
+  - Client unsubscribed from channel.
   - Message received for publication.
   - Message delivered to receiving client.
 
@@ -234,11 +234,11 @@ defmodule MyMonitor do
   use Pixie.Monitor
 
   def created_channel channel_name, at do
-    Logger.info "Channel \#\{channel_name} created at \#\{format at}")}"
+    Logger.info "Channel \#\{channel_name} created at \#\{format at}"
   end
 
   def destroyed_channel channel_name, at do
-    Logger.info "Channel \#\{channel_name} destroyed at \#\{format at}")}"
+    Logger.info "Channel \#\{channel_name} destroyed at \#\{format at}"
   end
 
   defp format timestamp do
