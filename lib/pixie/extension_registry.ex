@@ -25,16 +25,20 @@ defmodule Pixie.ExtensionRegistry do
   end
 
   def incoming %Event{}=event do
-    Enum.reduce :ets.tab2list(__MODULE__), event, fn
-      ({_,mod},e)->
-        apply(mod, :incoming, [e])
+    Enum.reduce_while :ets.tab2list(__MODULE__), event, fn
+      ({_, mod}, %{response: %{error: nil}}=e) ->
+        {:cont, apply(mod, :incoming, [e])}
+      (_, e) ->
+        {:halt, e}
     end
   end
 
   def outgoing %{}=message do
-    Enum.reduce :ets.tab2list(__MODULE__), message, fn
-      ({_,mod},m)->
-        apply(mod, :outgoing, [m])
+    Enum.reduce_while :ets.tab2list(__MODULE__), message, fn
+      ({_,mod},%{error: nil}=m)->
+        {:cont, apply(mod, :outgoing, [m])}
+      (_,m) ->
+        {:halt, m}
     end
   end
 
