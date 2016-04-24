@@ -34,11 +34,9 @@ defmodule Pixie.ExtensionRegistry do
   end
 
   def outgoing %{}=message do
-    Enum.reduce_while :ets.tab2list(__MODULE__), message, fn
-      ({_,mod},%{error: nil}=m)->
-        {:cont, apply(mod, :outgoing, [m])}
-      (_,m) ->
-        {:halt, m}
+    Enum.reduce :ets.tab2list(__MODULE__), message, fn
+      ({_,mod},m)->
+        apply(mod, :outgoing, [m])
     end
   end
 
